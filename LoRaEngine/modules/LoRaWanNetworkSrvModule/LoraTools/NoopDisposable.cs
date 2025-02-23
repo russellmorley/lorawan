@@ -7,7 +7,7 @@ namespace LoRaTools
 {
     using System;
 
-    internal static class NoopDisposable
+    public static class NoopDisposable
     {
         public static readonly IDisposable Instance = new Disposable();
 

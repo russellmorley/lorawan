@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-namespace LoRaWan.Tests.Unit.LoraKeysManagerFacade.FunctionBundler
+namespace LoRaWan.Tests.Unit.LoraDeviceManagerServices.FunctionBundler
 {
     using System.Threading.Tasks;
     using global::LoRaTools.CacheStore;

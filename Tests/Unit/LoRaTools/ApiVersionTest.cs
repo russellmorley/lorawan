@@ -7,8 +7,8 @@ namespace LoRaWan.Tests.Unit.LoRaTools.CommonAPI
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using global::LoraKeysManagerFacade.LoraDeviceDownstreamService;
-    using global::LoraKeysManagerFacade.LoraDeviceManagerServices;
+    using global::LoraDeviceManagerServices.LoraDeviceDownstreamService;
+    using global::LoraDeviceManagerServices.LoraDeviceManagerServices;
     using global::LoRaTools.Version;
     using LoraDeviceManager;
     using Microsoft.AspNetCore.Http;
@@ -33,7 +33,7 @@ namespace LoRaWan.Tests.Unit.LoRaTools.CommonAPI
                 (req) => new GetDeviceFunction(null, NullLogger<GetDeviceFunction>.Instance, null, null).GetDevice(req),
                 (req) => Task.Run(() => new NextFCntDownFunction(null, NullLogger<NextFCntDownFunction>.Instance, null).NextFCntDown(req)),
                 (req) => Task.Run(() => new FunctionBundlerFunction(
-                    new LoraDeviceManagerImpl(null, null, null, null, null, NullLogger<LoraDeviceManagerImpl>.Instance),
+                    new LoraDeviceManagerImpl(null, null, null, null, null, NullLogger<LoraDeviceManagerImpl>.Instance, null),
                     NullLogger<FunctionBundlerFunction>.Instance, 
                     null)
                         .FunctionBundler(req, string.Empty)),

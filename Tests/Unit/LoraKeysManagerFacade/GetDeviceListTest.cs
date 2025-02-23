@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-namespace LoRaWan.Tests.Unit.LoraKeysManagerFacade
+namespace LoRaWan.Tests.Unit.LoraDeviceManagerServices
 {
     using System;
     using System.Text;
@@ -9,6 +9,7 @@ namespace LoRaWan.Tests.Unit.LoraKeysManagerFacade
     using global::LoRaTools;
     using global::LoRaTools.IoTHubImpl;
     using LoraDeviceManager;
+    using LoraDeviceManager.Utils;
     using LoRaWan.Tests.Common;
     using Microsoft.Azure.Devices.Shared;
     using Microsoft.Extensions.Logging.Abstractions;
@@ -24,8 +25,8 @@ namespace LoRaWan.Tests.Unit.LoraKeysManagerFacade
         {
             var devEui = TestEui.GenerateDevEui();
             var gatewayId = NewUniqueEUI64();
-
-            var loraDeviceManager = new LoraDeviceManagerImpl(InitRegistryManager(devEui), new LoRaInMemoryDeviceStore(), null, null, null,NullLogger<LoraDeviceManagerImpl>.Instance);
+            var cacheStore = new LoRaInMemoryDeviceStore();
+            var loraDeviceManager = new LoraDeviceManagerImpl(InitRegistryManager(devEui), cacheStore, null, null, null,NullLogger<LoraDeviceManagerImpl>.Instance, new FrameCounter(cacheStore));
             var items = await loraDeviceManager.GetDeviceList(devEui, gatewayId, new DevNonce(0xABCD), null);
 
             Assert.Single(items);

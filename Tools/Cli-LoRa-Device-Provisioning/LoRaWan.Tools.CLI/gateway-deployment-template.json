@@ -62,6 +62,16 @@
             "status": "running",
             "restartPolicy": "always"
           },
+          "universaldecodermodule": {
+            "type": "docker",
+            "settings": {
+              "image": "docker.io/russellgm/universaldecoder:1.0-arm64",
+              "createOptions": "{}"
+            },
+            "version": "1.0",
+            "status": "running",
+            "restartPolicy": "always"
+          },
           ["$local_redis_module"]
           "LoRaBasicsStationModule": {
             "type": "docker",

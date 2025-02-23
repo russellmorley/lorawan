@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-namespace LoRaWan.Tests.Unit.LoraKeysManagerFacade
+namespace LoRaWan.Tests.Unit.LoraDeviceManagerServices
 {
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using global::LoraKeysManagerFacade.LoraDeviceManagerServices;
+    using global::LoraDeviceManagerServices.LoraDeviceManagerServices;
     using global::LoRaTools.Version;
     using LoraDeviceManager;
     using LoRaWan.Tests.Common;
@@ -32,12 +32,12 @@ namespace LoRaWan.Tests.Unit.LoraKeysManagerFacade
             {
                 (req) => Task.Run(() => new NextFCntDownFunction(null, NullLogger<NextFCntDownFunction>.Instance, new TestNoValidateTenantStrategy()).NextFCntDown(req)),
                 (req) => Task.Run(() => new FunctionBundlerFunction(
-                    new LoraDeviceManagerImpl(null, null, null, null, null, NullLogger<LoraDeviceManagerImpl>.Instance),
+                    new LoraDeviceManagerImpl(null, null, null, null, null, NullLogger<LoraDeviceManagerImpl>.Instance, null),
                     NullLogger<FunctionBundlerFunction>.Instance, 
                     new TestNoValidateTenantStrategy())
                         .FunctionBundler(req, string.Empty)),
                 (req) => new GetDeviceFunction(
-                    new LoraDeviceManagerImpl(null, null, null, null, null, NullLogger<LoraDeviceManagerImpl>.Instance), 
+                    new LoraDeviceManagerImpl(null, null, null, null, null, NullLogger<LoraDeviceManagerImpl>.Instance, null), 
                     NullLogger<GetDeviceFunction>.Instance,
                     new TestNoValidateTenantStrategy(),
                     null)

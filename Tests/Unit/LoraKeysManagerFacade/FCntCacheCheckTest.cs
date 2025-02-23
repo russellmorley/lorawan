@@ -1,10 +1,11 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-namespace LoRaWan.Tests.Unit.LoraKeysManagerFacade
+namespace LoRaWan.Tests.Unit.LoraDeviceManagerServices
 {
-    using global::LoraKeysManagerFacade.LoraDeviceManagerServices;
+    using global::LoraDeviceManagerServices.LoraDeviceManagerServices;
     using LoraDeviceManager;
+    using LoraDeviceManager.Utils;
     using LoRaWan.Tests.Common;
     using Microsoft.Extensions.Logging.Abstractions;
     using System.Threading.Tasks;
@@ -17,13 +18,15 @@ namespace LoRaWan.Tests.Unit.LoraKeysManagerFacade
 
         public FCntCacheCheckTest()
         {
+            var cacheStore = new LoRaInMemoryDeviceStore();
             this.loraDeviceManager = new LoraDeviceManagerImpl(
                     null,
-                    new LoRaInMemoryDeviceStore(),
+                    cacheStore,
                     null,
                     null,
                     null,
-                    NullLogger<LoraDeviceManagerImpl>.Instance);
+                    NullLogger<LoraDeviceManagerImpl>.Instance,
+                    new FrameCounter(cacheStore));
 
             this.nextFCntDownFunction = new NextFCntDownFunction(
                 loraDeviceManager,

@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-namespace LoRaWan.Tests.Unit.LoraKeysManagerFacade
+namespace LoRaWan.Tests.Unit.LoraDeviceManagerServices
 {
     using System;
     using System.Collections.Generic;
@@ -10,7 +10,7 @@ namespace LoRaWan.Tests.Unit.LoraKeysManagerFacade
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using global::LoraKeysManagerFacade.LoraDeviceDownstreamService;
+    using global::LoraDeviceManagerServices.LoraDeviceDownstreamService;
     using global::LoRaTools;
     using global::LoRaTools.CacheStore;
     using global::LoRaTools.ChannelPublisher;

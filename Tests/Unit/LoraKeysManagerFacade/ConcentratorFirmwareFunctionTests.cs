@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-namespace LoRaWan.Tests.Unit.LoraKeysManagerFacade
+namespace LoRaWan.Tests.Unit.LoraDeviceManagerServices
 {
     using System.Collections.Generic;
     using System.IO;
@@ -11,7 +11,7 @@ namespace LoRaWan.Tests.Unit.LoraKeysManagerFacade
     using Azure;
     using Azure.Storage.Blobs;
     using Azure.Storage.Blobs.Models;
-    using global::LoraKeysManagerFacade.LoraDeviceManagerServices;
+    using global::LoraDeviceManagerServices.LoraDeviceManagerServices;
     using global::LoRaTools;
     using global::LoRaTools.AzureBlobStorage;
     using global::LoRaTools.IoTHubImpl;
@@ -59,7 +59,7 @@ namespace LoRaWan.Tests.Unit.LoraKeysManagerFacade
                 blobServiceClient.Object,
                 NullLogger<AzureBlobStorageManager>.Instance);
 
-            var loraDeviceManager = new LoraDeviceManagerImpl(this.registryManager.Object, null, blobStorageManager, null, null, NullLogger<LoraDeviceManagerImpl>.Instance);
+            var loraDeviceManager = new LoraDeviceManagerImpl(this.registryManager.Object, null, blobStorageManager, null, null, NullLogger<LoraDeviceManagerImpl>.Instance, null);
             this.fetchConcentratorFirwareFunction = new FetchConcentratorFirmwareFunction(
                 loraDeviceManager,
                 new TestNoValidateTenantStrategy(), 

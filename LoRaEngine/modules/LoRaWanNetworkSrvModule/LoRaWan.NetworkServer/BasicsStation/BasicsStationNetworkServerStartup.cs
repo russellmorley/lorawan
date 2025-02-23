@@ -13,13 +13,13 @@ namespace LoRaWan.NetworkServer.BasicsStation
     using LoRaTools.ADR;
     using LoRaTools.NetworkServerDiscovery;
     using LoRaTools.Services;
-    using LoRaTools.Version;
     using LoRaWan;
     using LoRaWan.NetworkServer;
     using LoRaWan.NetworkServer.ADR;
     using LoRaWan.NetworkServer.BasicsStation.ModuleConnection;
     using LoRaWan.NetworkServer.BasicsStation.Processors;
     using LoRaWan.NetworkServer.Services;
+    using LoraDeviceManager.Services;
     using Microsoft.ApplicationInsights;
     using Microsoft.ApplicationInsights.AspNetCore.Extensions;
     using Microsoft.ApplicationInsights.Extensibility;
@@ -35,6 +35,7 @@ namespace LoRaWan.NetworkServer.BasicsStation
     using Microsoft.Extensions.Logging.ApplicationInsights;
     using Prometheus;
     using StackExchange.Redis;
+    using LoRaTools.Version;
 
     internal sealed class BasicsStationNetworkServerStartup
     {
@@ -102,7 +103,6 @@ namespace LoRaWan.NetworkServer.BasicsStation
                 .AddSingleton<IClassCDeviceMessageSender, DefaultClassCDevicesMessageSender>()
                 .AddSingleton<ILoRaModuleClientFactory>(loraModuleFactory)
                 .AddSingleton<ITenantValidationStrategy>(new Sha256TenantValidationStrategy() { DoValidation = NetworkServerConfiguration.ServiceValidatesTenant })
-                .AddSingleton<LoraDeviceManagerServicesBase, LoraDeviceManagerServicesProxy>()
                 .AddSingleton<WebSocketWriterRegistry<StationEui, string>>()
                 .AddSingleton<IDownstreamMessageSender, DownstreamMessageSender>()
                 .AddSingleton<LoRaDeviceCache>()
@@ -118,6 +118,15 @@ namespace LoRaWan.NetworkServer.BasicsStation
                                                                                                                    sp.GetRequiredService<RegistryMetricTagBag>(),
                                                                                                                    sp.GetRequiredService<ILogger<ApplicationInsightsMetricExporter>>()) : null,
                                                     new PrometheusMetricExporter(sp.GetRequiredService<RegistryMetricTagBag>(), sp.GetRequiredService<ILogger<PrometheusMetricExporter>>()))));
+
+            if (NetworkServerConfiguration.AddLocalDeviceManager)
+            {
+                services.AddSingleton<LoraDeviceManagerServicesBase, LoraDeviceManagerServices>();
+            }
+            else
+            {
+                services.AddSingleton<LoraDeviceManagerServicesBase, LoraDeviceManagerServicesProxy>();
+            }
 
             if (useApplicationInsights)
             {

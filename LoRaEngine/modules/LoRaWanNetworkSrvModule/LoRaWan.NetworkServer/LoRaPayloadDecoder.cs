@@ -182,6 +182,22 @@ namespace LoRaWan.NetworkServer
             var payloadHex = ((payload?.Length ?? 0) == 0) ? string.Empty : payload.ToHex();
             return new DecodedPayloadValue(payloadHex);
         }
+
+        /// <summary>
+        /// Decoder encodes byte[] as base64 string so data can be passed as-is then decoded 
+        /// further upstream.
+        /// 
+        /// To use this decoder using its case-sensitive name in the device's twin without http prefix.
+        /// </summary>
+        /// <param name="devEui"></param>
+        /// <param name="payload"></param>
+        /// <param name="fport"></param>
+        /// <returns></returns>
+        public static object DecoderBase64Sensor(DevEui devEui, byte[] payload, FramePort fport)
+        {
+            var base64String = Convert.ToBase64String(payload);
+            return new DecodedPayloadValue(base64String);
+        }
     }
 
     internal static class PayloadDecoderHttpClient

@@ -149,6 +149,7 @@ namespace LoRaWan.NetworkServer.BasicsStation.ModuleConnection
 
         private bool TryUpdateConfigurationWithDesiredProperties(TwinCollection desiredProperties)
         {
+            var configurationUpdated = false;
             if (desiredProperties is null)
             {
                 return false;
@@ -162,6 +163,7 @@ namespace LoRaWan.NetworkServer.BasicsStation.ModuleConnection
                 {
                     this.logger.LogDebug("Updating processing delay for LNS to {ProcessingDelay} from desired properties of the module twin", processingDelay);
                     this.networkServerConfiguration.ProcessingDelayInMilliseconds = processingDelay;
+                    configurationUpdated = true;
                 }
                 else
                 {
@@ -180,7 +182,7 @@ namespace LoRaWan.NetworkServer.BasicsStation.ModuleConnection
                         this.loRaDeviceAPIService.SetAuthCode(authCode);
                     }
 
-                    return true;
+                    configurationUpdated = true;
                 }
                 else
                 {
@@ -196,11 +198,12 @@ namespace LoRaWan.NetworkServer.BasicsStation.ModuleConnection
                 {
                     this.loRaDeviceAPIService.TenantKey = tenantKey;
                 }
-                return true;
+                configurationUpdated = true;
             }
 
-            this.logger.LogDebug("no desired property changed");
-            return false;
+            if (!configurationUpdated)
+                this.logger.LogDebug("no desired property changed");
+            return configurationUpdated;
         }
 
         public async ValueTask DisposeAsync()

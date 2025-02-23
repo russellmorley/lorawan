@@ -4,8 +4,8 @@
     <IsTestProject>false</IsTestProject>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\LoRaEngine\LoraDeviceManagerServices\LoraDeviceManagerServices.csproj" />
     <ProjectReference Include="..\..\LoRaEngine\modules\LoRaWan.NetworkServerDiscovery\LoRaWan.NetworkServerDiscovery.csproj" />
-    <ProjectReference Include="..\..\LoRaEngine\LoraKeysManagerFacade\LoraKeysManagerFacade.csproj" />
     <ProjectReference Include="..\..\LoRaEngine\modules\LoRaWanNetworkSrvModule\LoRaWan.NetworkServer\LoRaWan.NetworkServer.csproj" />
   </ItemGroup>
   <ItemGroup>

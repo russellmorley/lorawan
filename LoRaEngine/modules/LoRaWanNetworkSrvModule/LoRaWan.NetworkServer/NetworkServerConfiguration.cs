@@ -77,6 +77,8 @@ namespace LoRaWan.NetworkServer
         /// </summary>
         public string TenantKey { get; set; }
 
+        public bool AddLocalDeviceManager { get; set; }
+
         /// <summary>
         /// Gets or sets a value indicating whether logging to console is enabled.
         /// </summary>
@@ -174,6 +176,7 @@ namespace LoRaWan.NetworkServer
             config.ProcessingDelayInMilliseconds = envVars.GetEnvVar("PROCESSING_DELAY_IN_MS", config.ProcessingDelayInMilliseconds);
             config.IsLocalDevelopment = envVars.GetEnvVar("LOCAL_DEVELOPMENT", false);
             config.ServiceValidatesTenant = envVars.GetEnvVar("SERVICE_VALIDATES_TENANT", false);
+            config.AddLocalDeviceManager = envVars.GetEnvVar("ADD_LOCAL_DEVICE_MANAGER", false);
             // We disable IoT Edge runtime either when we run in the cloud or during local development.
             config.RunningAsIoTEdgeModule = !(envVars.GetEnvVar("CLOUD_DEPLOYMENT", false) || config.IsLocalDevelopment);
             var iotHubHostName = envVars.GetEnvVar("IOTEDGE_IOTHUBHOSTNAME", envVars.GetEnvVar("IOTHUBHOSTNAME", string.Empty));

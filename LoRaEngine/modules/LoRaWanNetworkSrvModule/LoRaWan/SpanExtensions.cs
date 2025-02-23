@@ -8,7 +8,7 @@ namespace LoRaWan
     using System.Text;
 
 
-    internal static class SpanExtensions
+    public static class SpanExtensions
     {
         public static ByteSpanReader GetReader(this byte[] source) => new(source);
         public static ByteSpanReader GetReader(this Span<byte> source) => new(source);

@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-namespace LoRaWan.Tests.Unit.LoraKeysManagerFacade.FunctionBundler
+namespace LoRaWan.Tests.Unit.LoraDeviceManagerServices.FunctionBundler
 {
     using System;
     using System.Collections.Generic;
@@ -15,6 +15,7 @@ namespace LoRaWan.Tests.Unit.LoraKeysManagerFacade.FunctionBundler
     using LoraDeviceManager;
     using LoraDeviceManager.ADR;
     using LoraDeviceManager.FunctionBundler;
+    using LoraDeviceManager.Utils;
     using LoRaWan.Tests.Common;
     using Microsoft.ApplicationInsights.Extensibility;
     using Microsoft.Extensions.Logging.Abstractions;
@@ -56,7 +57,7 @@ namespace LoRaWan.Tests.Unit.LoraKeysManagerFacade.FunctionBundler
             // .Returns(new LoRaADRStandardStrategy());
             var cacheStore = new LoRaInMemoryDeviceStore();
             this.adrStore = new LoRaADRInMemoryStore();
-            this.adrManager = new LoRaADRServerManager(this.adrStore, strategyProvider.Object, cacheStore, NullLoggerFactory.Instance, NullLogger<LoRaADRServerManager>.Instance);
+            this.adrManager = new LoRaADRServerManager(this.adrStore, strategyProvider.Object, new FrameCounter(cacheStore), NullLogger<LoRaADRServerManager>.Instance);
             this.adrExecutionItem = new ADRExecutionItem(this.adrManager);
 
             this.telemetryConfiguration = new TelemetryConfiguration();
@@ -69,11 +70,11 @@ namespace LoRaWan.Tests.Unit.LoraKeysManagerFacade.FunctionBundler
                                                Mock.Of<IChannelPublisher>(),
                                                this.telemetryConfiguration),
                 this.adrExecutionItem,
-                new NextFCntDownExecutionItem(new LoraDeviceManagerImpl(null, cacheStore, null, null, null, NullLogger<LoraDeviceManagerImpl>.Instance)),
+                new NextFCntDownExecutionItem(new FrameCounter(cacheStore)),
                 new PreferredGatewayExecutionItem(cacheStore, new NullLogger<PreferredGatewayExecutionItem>(), null),
             };
 
-            this.loraDeviceManager = new LoraDeviceManagerImpl(null, null, null, null, items, NullLogger<LoraDeviceManagerImpl>.Instance);
+            this.loraDeviceManager = new LoraDeviceManagerImpl(null, null, null, null, items, NullLogger<LoraDeviceManagerImpl>.Instance, null);
         }
 
 
@@ -355,7 +356,7 @@ namespace LoRaWan.Tests.Unit.LoraKeysManagerFacade.FunctionBundler
                                                Mock.Of<IChannelPublisher>(),
                                                this.telemetryConfiguration),
                 new ADRExecutionItem(this.adrManager),
-                new NextFCntDownExecutionItem(new LoraDeviceManagerImpl(null, cacheStore, null, null, null,NullLogger<LoraDeviceManagerImpl>.Instance)),
+                new NextFCntDownExecutionItem(new FrameCounter(cacheStore)),
                 new PreferredGatewayExecutionItem(cacheStore, new NullLogger<PreferredGatewayExecutionItem>(), null),
             };
 

@@ -35,7 +35,7 @@ namespace LoRaTools.FunctionBundler
         /// <summary>
         /// Indicates if the preferred gateway resolution was executed successfully.
         /// </summary>
-        internal bool IsSuccessful() => !Conflict && string.IsNullOrEmpty(ErrorMessage);
+        public bool IsSuccessful() => !Conflict && string.IsNullOrEmpty(ErrorMessage);
 
         public PreferredGatewayResult()
         {

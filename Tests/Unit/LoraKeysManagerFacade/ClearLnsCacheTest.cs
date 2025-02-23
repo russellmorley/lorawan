@@ -3,13 +3,13 @@
 
 #nullable enable
 
-namespace LoRaWan.Tests.Unit.LoraKeysManagerFacade
+namespace LoRaWan.Tests.Unit.LoraDeviceManagerServices
 {
     using System;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
-    using global::LoraKeysManagerFacade.LoraDeviceDownstreamService;
+    using global::LoraDeviceManagerServices.LoraDeviceDownstreamService;
     using global::LoRaTools;
     using global::LoRaTools.ChannelPublisher;
     using global::LoRaTools.EdgeDeviceGetter;

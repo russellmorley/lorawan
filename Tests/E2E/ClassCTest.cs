@@ -22,7 +22,7 @@ namespace LoRaWan.Tests.E2E
         }
 
         // Ensures that class C devices can receive messages from a direct method call;
-        // the test uses the SendCloudToDeviceMessage endpoint in LoRaKeysManagerFacade
+        // the test uses the SendCloudToDeviceMessage endpoint in LoraDeviceManagerServices
         // instead of callling direct method from the test code.
         // Uses Device24_ABP
         [Fact]

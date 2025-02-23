@@ -1,12 +1,13 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-namespace LoRaWan.Tests.Unit.LoraKeysManagerFacade.FunctionBundler
+namespace LoRaWan.Tests.Unit.LoraDeviceManagerServices.FunctionBundler
 {
     using System;
     using System.Threading.Tasks;
     using global::LoRaTools.ADR;
     using LoraDeviceManager.ADR;
+    using LoraDeviceManager.Utils;
     using LoRaWan.Tests.Common;
     using Microsoft.Extensions.Logging.Abstractions;
     using Moq;
@@ -46,8 +47,7 @@ namespace LoRaWan.Tests.Unit.LoraKeysManagerFacade.FunctionBundler
             this.adrStore = new LoRaADRInMemoryStore();
             this.adrManager = new LoRaADRServerManager(this.adrStore,
                                                        strategyProvider.Object,
-                                                       new LoRaInMemoryDeviceStore(),
-                                                       NullLoggerFactory.Instance,
+                                                       new FrameCounter(new LoRaInMemoryDeviceStore()),
                                                        NullLogger<LoRaADRServerManager>.Instance);
             this.adrExecutionItem = new ADRExecutionItem(this.adrManager);
         }

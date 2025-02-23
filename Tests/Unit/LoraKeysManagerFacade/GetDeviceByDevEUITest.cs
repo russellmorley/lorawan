@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-namespace LoRaWan.Tests.Unit.LoraKeysManagerFacade
+namespace LoRaWan.Tests.Unit.LoraDeviceManagerServices
 {
     using System;
     using System.Text;
     using System.Threading.Tasks;
-    using global::LoraKeysManagerFacade.LoraDeviceManagerServices;
+    using global::LoraDeviceManagerServices.LoraDeviceManagerServices;
     using global::LoRaTools;
     using global::LoRaTools.Version;
     using LoraDeviceManager;
@@ -19,7 +19,7 @@ namespace LoRaWan.Tests.Unit.LoraKeysManagerFacade
     using Xunit;
 
     // Ensure tests don't run in parallel since LoRaRegistryManager is shared
-    [Collection("LoraKeysManagerFacade.Test")]
+    [Collection("LoraDeviceManagerServices.Test")]
     public class GetDeviceByDevEUITest
     {
         private const string PrimaryKey = "ABCDEFGH1234567890";
@@ -136,7 +136,8 @@ namespace LoRaWan.Tests.Unit.LoraKeysManagerFacade
                     null,
                     null,
                     null,
-                    NullLogger<LoraDeviceManagerImpl>.Instance),
+                    NullLogger<LoraDeviceManagerImpl>.Instance,
+                    null),
                 new TestNoValidateTenantStrategy(),
                 NullLogger<GetDeviceByDevEUIFunction>.Instance);
     }

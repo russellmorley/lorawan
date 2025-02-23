@@ -8,7 +8,7 @@ namespace LoRaWan
     using System.Runtime.InteropServices;
     using System.Text;
 
-    internal ref struct ByteSpanReader
+    public ref struct ByteSpanReader
     {
         private ReadOnlySpan<byte> span;
 

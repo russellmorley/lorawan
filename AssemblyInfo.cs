@@ -5,8 +5,6 @@ using System.Runtime.CompilerServices;
 
 [assembly: System.CLSCompliant(false)]
 
-[assembly: InternalsVisibleTo("LoRaTools")]
-[assembly: InternalsVisibleTo("LoRaWan.NetworkServer")]
 [assembly: InternalsVisibleTo("LoRaWan.Tests.Unit")]
 [assembly: InternalsVisibleTo("LoRaWan.Tests.Integration")]
 [assembly: InternalsVisibleTo("LoRaWan.Tests.E2E")]

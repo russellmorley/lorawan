@@ -1,0 +1,1 @@
+﻿docker build --tag russellgm/loradevicemanagerservices:v1.0 .
