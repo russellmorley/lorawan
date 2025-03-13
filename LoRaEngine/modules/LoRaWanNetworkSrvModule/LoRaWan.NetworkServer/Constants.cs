@@ -50,9 +50,9 @@ namespace LoRaWan.NetworkServer
         /// </summary>
         public const int MinKeepAliveTimeout = 60;
 
-        public const string FacadeServerUrlKey = "FacadeServerUrl";
+        public const string DeviceManagerServicesUrlKey = "DeviceManagerServicesUrl";
 
-        public const string FacadeServerAuthCodeKey = "FacadeAuthCode";
+        public const string DeviceManagerServicesCodeKey = "DeviceManagerServicesCode";
 
         public const string TenantId = "tenantId";
 

@@ -25,7 +25,7 @@ create_devices_with_lora_cli() {
 	# Add --local-redis-params-escaped-jsonstring to add additional params to the container, e.g. "\\\"Ulimits\\\":[{\\\"memlock\\\":-1}]" to add a Ulimits container setting of memlock: -1
 	#
 	echo \"Creating gateway $EDGE_GATEWAY_NAME...\"
-	./loradeviceprovisioning add-gateway --reset-pin \"$RESET_PIN\" --device-id \"$EDGE_GATEWAY_NAME\" --spi-dev \"$SPI_DEV\" --spi-speed \"$SPI_SPEED\" --api-url \"$FACADE_SERVER_URL\" --api-key \"$FACADE_AUTH_CODE\" --lns-host-address \"$LNS_HOST_ADDRESS\" --network \"$NETWORK\" --monitoring \"$monitoringEnabled\" --iothub-resource-id \"$IOTHUB_RESOURCE_ID\" --log-analytics-workspace-id \"$LOG_ANALYTICS_WORKSPACE_ID\" --log-analytics-shared-key \"$LOG_ANALYTICS_SHARED_KEY\" --lora-version \"$LORA_VERSION\"
+	./loradeviceprovisioning add-gateway --reset-pin \"$RESET_PIN\" --device-id \"$EDGE_GATEWAY_NAME\" --spi-dev \"$SPI_DEV\" --spi-speed \"$SPI_SPEED\" --devicemanagerservices-url \"$FACADE_SERVER_URL\" --devicemanagerservices-code \"$FACADE_AUTH_CODE\" --lns-host-address \"$LNS_HOST_ADDRESS\" --network \"$NETWORK\" --monitoring \"$monitoringEnabled\" --iothub-resource-id \"$IOTHUB_RESOURCE_ID\" --log-analytics-workspace-id \"$LOG_ANALYTICS_WORKSPACE_ID\" --log-analytics-shared-key \"$LOG_ANALYTICS_SHARED_KEY\" --lora-version \"$LORA_VERSION\"
 			
 	# Add --tenant-id to add a tenant id.
 	echo \"Creating concentrator $STATION_DEVICE_NAME for region $REGION...\"
@@ -48,6 +48,7 @@ create_devices_with_lora_cli() {
 }
 
 # Setting default values
+# see https://www.gnu.org/software/bash/manual/html_node/Shell-Parameter-Expansion.html
 STATION_DEVICE_NAME=${STATION_DEVICE_NAME:-AA555A0000000101}
 # was EU863
 REGION=${REGION:-US915}
@@ -67,8 +68,8 @@ FACADE_AUTH_CODE
 IOTHUB_RESOURCE_ID
 LOG_ANALYTICS_WORKSPACE_ID
 LOG_ANALYTICS_SHARED_KEY
-# this software's version to use
-LORA_VERSION=2.2.2
+# the tag of the LNS docker image
+LORA_VERSION=2.2.3
 
 
 # deploy example device

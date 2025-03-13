@@ -13,6 +13,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{67C7C34B-B11C-4E10-9D97-728FB122683F}"
 	ProjectSection(SolutionItems) = preProject
 		Directory.Build.props = Directory.Build.props
+		LoRaEngine\docker-bake.hcl = LoRaEngine\docker-bake.hcl
+		LoRaEngine\example.env = LoRaEngine\example.env
 		README.md = README.md
 	EndProjectSection
 EndProject
@@ -36,6 +38,14 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoraDeviceManager", "LoRaEngine\modules\LoRaWanNetworkSrvModule\LoraDeviceManager\LoraDeviceManager.csproj", "{25E5C4EE-2294-4D67-AA95-A970ACDECEF4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoraDeviceManagerServices", "LoRaEngine\LoraDeviceManagerServices\LoraDeviceManagerServices.csproj", "{E99B2B98-2603-4B7D-B780-6B7D95ECB2CB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NetworkServerModuleBuild", "NetworkServerModuleBuild", "{20E752D2-951B-4046-A727-B78E358DE967}"
+	ProjectSection(SolutionItems) = preProject
+		LoRaEngine\.env = LoRaEngine\.env
+		LoRaEngine\compose.yaml = LoRaEngine\compose.yaml
+		LoRaEngine\modules\LoRaWanNetworkSrvModule\Dockerfile = LoRaEngine\modules\LoRaWanNetworkSrvModule\Dockerfile
+		LoRaEngine\Readme.md = LoRaEngine\Readme.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -151,6 +161,7 @@ Global
 		{8F615E91-40E2-4BF4-8573-577CEC7701FF} = {A3AF6806-947C-426F-8063-7229B71A4472}
 		{A871D30D-2634-4321-A0EB-B116A1BA1CD3} = {A3AF6806-947C-426F-8063-7229B71A4472}
 		{4FA0718D-15A2-4D4E-9310-7FB17B285757} = {A3AF6806-947C-426F-8063-7229B71A4472}
+		{20E752D2-951B-4046-A727-B78E358DE967} = {67C7C34B-B11C-4E10-9D97-728FB122683F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FD60E938-DB16-4486-8BEF-4F2CE460E71D}

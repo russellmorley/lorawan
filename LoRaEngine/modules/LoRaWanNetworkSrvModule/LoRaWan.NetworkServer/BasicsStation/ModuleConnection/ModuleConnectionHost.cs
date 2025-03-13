@@ -172,12 +172,12 @@ namespace LoRaWan.NetworkServer.BasicsStation.ModuleConnection
                 }
             }
 
-            if (reader.TryRead<string>(NetworkServer.Constants.FacadeServerUrlKey, out var faceServerUrl))
+            if (reader.TryRead<string>(NetworkServer.Constants.DeviceManagerServicesUrlKey, out var faceServerUrl))
             {
                 if (Uri.TryCreate(faceServerUrl, UriKind.Absolute, out var url) && (url.Scheme == Uri.UriSchemeHttp || url.Scheme == Uri.UriSchemeHttps))
                 {
                     this.loRaDeviceAPIService.URL = url;
-                    if (reader.TryRead<string>(NetworkServer.Constants.FacadeServerAuthCodeKey, out var authCode))
+                    if (reader.TryRead<string>(NetworkServer.Constants.DeviceManagerServicesCodeKey, out var authCode))
                     {
                         this.loRaDeviceAPIService.SetAuthCode(authCode);
                     }

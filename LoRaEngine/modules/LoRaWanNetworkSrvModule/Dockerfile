@@ -3,7 +3,7 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
 WORKDIR /build
 COPY Directory.Build.props ./
 COPY AssemblyInfo.cs ./
-COPY .editorconfig ./
+# COPY .editorconfig ./
 COPY global.json ./
 
 WORKDIR /build/LoRaEngine/modules
@@ -33,9 +33,10 @@ RUN dotnet publish "LoRaWanNetworkSrvModule.csproj" -c Release -o out --no-resto
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
 COPY --from=build-env /build/LoRaEngine/modules/LoRaWanNetworkSrvModule/LoRaWanNetworkSrvModule/out/* ./
-COPY ./LoRaEngine/modules/LoRaWanNetworkSrvModule/start.sh ./
 COPY ./LoRaEngine/modules/LoRaWanNetworkSrvModule/appsettings.json ./
+COPY ./LoRaEngine/modules/LoRaWanNetworkSrvModule/start.sh ./
 COPY ./LoRaEngine/modules/LoRaWanNetworkSrvModule/NOTICE.txt ./
 COPY LICENSE ./
+
 RUN chmod +x ./start.sh
 ENTRYPOINT ["./start.sh"]

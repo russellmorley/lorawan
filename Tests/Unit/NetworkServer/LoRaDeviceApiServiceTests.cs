@@ -210,14 +210,14 @@ namespace LoRaWan.Tests.Unit.NetworkServer
         //    return tenantValidationStrategyMock.Object;
         //}
         private static LoraDeviceManagerServicesProxy Setup(string basePath) {
-            return new LoraDeviceManagerServicesProxy(new NetworkServerConfiguration { FacadeServerUrl = new Uri(basePath) },
+            return new LoraDeviceManagerServicesProxy(new NetworkServerConfiguration { DeviceManagerServicesUrl = new Uri(basePath) },
                                      new Mock<IHttpClientFactory>().Object,
                                      NullLogger<LoraDeviceManagerServicesProxy>.Instance,
                                      new TestNoValidateTenantStrategy(),
                                      TestMeter.Instance);
         }
         private static LoraDeviceManagerServicesProxy Setup(IHttpClientFactory httpClientFactory) =>
-            new LoraDeviceManagerServicesProxy(new NetworkServerConfiguration { FacadeServerUrl = new Uri("https://aka.ms/api/") },
+            new LoraDeviceManagerServicesProxy(new NetworkServerConfiguration { DeviceManagerServicesUrl = new Uri("https://aka.ms/api/") },
                                      httpClientFactory,
                                      NullLogger<LoraDeviceManagerServicesProxy>.Instance,
                                      new TestNoValidateTenantStrategy(),

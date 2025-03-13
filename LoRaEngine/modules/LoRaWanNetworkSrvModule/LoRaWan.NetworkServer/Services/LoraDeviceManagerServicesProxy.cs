@@ -44,8 +44,8 @@ namespace LoRaWan.NetworkServer.Services
             deviceLoadRequests = meter.CreateCounter<int>(MetricRegistry.DeviceLoadRequests);
 
             if (configuration is null) throw new ArgumentNullException(nameof(configuration));
-            AuthCode = configuration.FacadeAuthCode;
-            URL = configuration.FacadeServerUrl;
+            AuthCode = configuration.DeviceManagerServicesCode;
+            URL = configuration.DeviceManagerServicesUrl;
             TenantId = configuration.TenantId;
             TenantKey = configuration.TenantKey;
             CallingGatewayId = configuration.GatewayID;

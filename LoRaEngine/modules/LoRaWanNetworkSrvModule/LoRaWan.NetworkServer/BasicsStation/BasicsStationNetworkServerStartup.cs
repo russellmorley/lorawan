@@ -36,6 +36,7 @@ namespace LoRaWan.NetworkServer.BasicsStation
     using Prometheus;
     using StackExchange.Redis;
     using LoRaTools.Version;
+    using LoraDeviceManager.Startup;
 
     internal sealed class BasicsStationNetworkServerStartup
     {
@@ -149,6 +150,14 @@ namespace LoRaWan.NetworkServer.BasicsStation
                               new RedisRemoteCallListener(ConnectionMultiplexer.Connect(NetworkServerConfiguration.RedisConnectionString),
                                                           sp.GetRequiredService<ILogger<RedisRemoteCallListener>>(),
                                                           sp.GetRequiredService<Meter>()));
+
+            if (NetworkServerConfiguration.AddLocalDeviceManager)
+            {
+                ServiceCollectionDependencies.AddServices(
+                    services,
+                    Configuration, 
+                    redisConnectionStringKey: NetworkServerConfiguration.LocalDeviceManagerRedisConnectionString);
+            }
         }
 
 #pragma warning disable CA1822 // Mark members as static

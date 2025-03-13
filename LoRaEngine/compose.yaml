@@ -1,21 +1,36 @@
 version: "3.9"
 services:
+  lorawannetworkserver:
+    build:
+      context: ..
+      dockerfile: LoRaEngine/modules/LoRaWanNetworkSrvModule/Dockerfile
+      platforms:
+        - linux/amd64
+        - linux/arm64
+    image: ${CONTAINER_REGISTRY_ADDRESS:?"CONTAINER_REGISTRY_ADDRESS environment variable need to be set"}/lorawannetworksrvmodule:${NET_SRV_VERSION:-0.0.1-local}
+    # see https://www.gnu.org/software/bash/manual/html_node/Shell-Parameter-Expansion.html
   lorawannetworkserver-amd64:
     build:
       context: ..
-      dockerfile: LoRaEngine/modules/LoRaWanNetworkSrvModule/Dockerfile.amd64
+      dockerfile: LoRaEngine/modules/LoRaWanNetworkSrvModule/Dockerfile
+      platforms:
+        - linux/amd64
     image: ${CONTAINER_REGISTRY_ADDRESS:?"CONTAINER_REGISTRY_ADDRESS environment variable need to be set"}/lorawannetworksrvmodule:${NET_SRV_VERSION:-0.0.1-local-amd64}
 
   lorawannetworkserver-arm32v7:
     build:
       context: ..
-      dockerfile: LoRaEngine/modules/LoRaWanNetworkSrvModule/Dockerfile.arm32v7
+      dockerfile: LoRaEngine/modules/LoRaWanNetworkSrvModule/Dockerfile
+      platforms:
+        - linux/arm32
     image: ${CONTAINER_REGISTRY_ADDRESS:?"CONTAINER_REGISTRY_ADDRESS environment variable need to be set"}/lorawannetworksrvmodule:${NET_SRV_VERSION:-0.0.1-local-arm32v7}
 
   lorawannetworkserver-arm64v8:
     build:
       context: ..
-      dockerfile: LoRaEngine/modules/LoRaWanNetworkSrvModule/Dockerfile.arm64v8
+      dockerfile: LoRaEngine/modules/LoRaWanNetworkSrvModule/Dockerfile
+      platforms:
+        - linux/arm64
     image: ${CONTAINER_REGISTRY_ADDRESS:?"CONTAINER_REGISTRY_ADDRESS environment variable need to be set"}/lorawannetworksrvmodule:${NET_SRV_VERSION:-0.0.1-local-arm64v8}
 
 

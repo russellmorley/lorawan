@@ -71,8 +71,8 @@ namespace LoRaWan.Tests.Unit.NetworkServer
 
             var input = JsonSerializer.Serialize(new
             {
-                FacadeServerUrl = url1,
-                FacadeAuthCode = authCode,
+                DeviceManagerServicesUrl = url1,
+                DeviceManagerServicesCode = authCode,
             });
 
             await this.subject.OnDesiredPropertiesUpdate(new TwinCollection(input), null);
@@ -80,8 +80,8 @@ namespace LoRaWan.Tests.Unit.NetworkServer
             var url2 = this.faker.Internet.Url();
             var input2 = JsonSerializer.Serialize(new
             {
-                FacadeServerUrl = url2,
-                FacadeAuthCode = authCode,
+                DeviceManagerServicesUrl = url2,
+                DeviceManagerServicesCode = authCode,
             });
             await this.subject.OnDesiredPropertiesUpdate(new TwinCollection(input2), null);
             Assert.Equal(url2 + "/", loRaDeviceApiServiceBase.URL.ToString());
@@ -89,17 +89,17 @@ namespace LoRaWan.Tests.Unit.NetworkServer
         }
 
         [Theory]
-        [InlineData("{ FacadeServerUrl: 'url2', FacadeAuthCode: 'authCode' }")]// not a url
-        [InlineData("{ FacadeAuthCode: 'authCode' }")] // no Url
-        [InlineData("{ FacadeServerUrl: '', FacadeAuthCode: 'authCode' }")]// empty url
+        [InlineData("{ DeviceManagerServicesUrl: 'url2', FacadeAuthCode: 'authCode' }")]// not a url
+        [InlineData("{ DeviceManagerServicesCode: 'authCode' }")] // no Url
+        [InlineData("{ DeviceManagerServicesUrl: '', FacadeAuthCode: 'authCode' }")]// empty url
         public async Task On_Desired_Properties_Incorrect_Update_Should_Not_Update_Api_Service_Configuration(string twinUpdate)
         {
             var facadeUri = faker.Internet.Url();
             var facadeCode = faker.Internet.Password();
             var networkServerConfiguration = new NetworkServerConfiguration
             {
-                FacadeServerUrl = new Uri(facadeUri),
-                FacadeAuthCode = facadeCode
+                DeviceManagerServicesUrl = new Uri(facadeUri),
+                DeviceManagerServicesCode = facadeCode
             };
 
             var localLoRaDeviceApiServiceBase = new LoraDeviceManagerServicesProxy(networkServerConfiguration, Mock.Of<IHttpClientFactory>(), NullLogger<LoraDeviceManagerServicesProxy>.Instance, Mock.Of<ITenantValidationStrategy>(), TestMeter.Instance);
@@ -155,8 +155,8 @@ namespace LoRaWan.Tests.Unit.NetworkServer
                 Desired = new TwinCollection(
                     JsonSerializer.Serialize(new
                     {
-                        FacadeServerUrl = facadeUri,
-                        FacadeAuthCode = facadeCode,
+                        DeviceManagerServicesUrl = facadeUri,
+                        DeviceManagerServicesCode = facadeCode,
                         ProcessingDelayInMilliseconds = processingDelay
                     }))
             };
@@ -205,8 +205,8 @@ namespace LoRaWan.Tests.Unit.NetworkServer
                 Desired = new TwinCollection(
                     JsonSerializer.Serialize(new
                     {
-                        FacadeServerUrl = facadeUri,
-                        FacadeAuthCode = facadeCode,
+                        DeviceManagerServicesUrl = facadeUri,
+                        DeviceManagerServicesCode = facadeCode,
                         ProcessingDelayInMilliseconds = processingDelay
                     }))
             };

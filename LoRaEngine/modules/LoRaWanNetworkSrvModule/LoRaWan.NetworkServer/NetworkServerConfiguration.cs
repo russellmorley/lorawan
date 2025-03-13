@@ -5,9 +5,15 @@ namespace LoRaWan.NetworkServer
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
+    using System.Xml.Linq;
     using Microsoft.AspNetCore.Server.Kestrel.Https;
+    using Microsoft.Azure.Amqp;
     using Microsoft.Azure.Devices.Client;
+    using Microsoft.VisualBasic;
+    using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
+    using static System.Net.WebRequestMethods;
 
     // Network server configuration
     public class NetworkServerConfiguration
@@ -60,12 +66,12 @@ namespace LoRaWan.NetworkServer
         /// <summary>
         /// Gets or sets the Azure Facade function URL.
         /// </summary>
-        public Uri FacadeServerUrl { get; set; }
+        public Uri DeviceManagerServicesUrl { get; set; }
 
         /// <summary>
         /// Gets or sets the Azure Facade Function auth code.
         /// </summary>
-        public string FacadeAuthCode { get; set; }
+        public string DeviceManagerServicesCode { get; set; }
         
         /// <summary>
         /// Gets ir sets the Azure Facade Function tenant id.
@@ -78,6 +84,8 @@ namespace LoRaWan.NetworkServer
         public string TenantKey { get; set; }
 
         public bool AddLocalDeviceManager { get; set; }
+
+        public string LocalDeviceManagerRedisConnectionString { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether logging to console is enabled.
@@ -177,8 +185,29 @@ namespace LoRaWan.NetworkServer
             config.IsLocalDevelopment = envVars.GetEnvVar("LOCAL_DEVELOPMENT", false);
             config.ServiceValidatesTenant = envVars.GetEnvVar("SERVICE_VALIDATES_TENANT", false);
             config.AddLocalDeviceManager = envVars.GetEnvVar("ADD_LOCAL_DEVICE_MANAGER", false);
+            config.LocalDeviceManagerRedisConnectionString = envVars.GetEnvVar("LOCAL_DEVICE_MANAGER_REDIS_CONNECTION_STRING", "");
             // We disable IoT Edge runtime either when we run in the cloud or during local development.
             config.RunningAsIoTEdgeModule = !(envVars.GetEnvVar("CLOUD_DEPLOYMENT", false) || config.IsLocalDevelopment);
+            //note, when running in an iotedge container, these variables are provided to the module container: https://developers.de/2018/09/27/iotedge-module-environment/
+
+            //IOTEDGE_DEVICEID = IOTEDGEDEVICEID
+            //HOSTNAME=037da582dc34
+            //IOTEDGE_GATEWAYHOSTNAME=YOURMACHINENNAME
+            //PWD=/app
+            //HOME=/home/moduleuser
+            //IOTEDGE_WORKLOADURI=http://10.0.75.1:15581/
+            //IOTEDGE_MODULEGENERATIONID=636706377995602534
+            //IOTEDGE_AUTHSCHEME=sasToken
+            //RuntimeLogLevel=Information
+            //IOTEDGE_APIVERSION=2018-06-28
+            //DOTNET_RUNNING_IN_CONTAINER=true
+            //TERM=xterm
+            //SHLVL=1
+            //PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+            //IOTEDGE_MODULEID=YOURMODULEID
+            //IOTEDGE_IOTHUBHOSTNAME=YOURIOTHUBNAME.azure-devices.net
+
+
             var iotHubHostName = envVars.GetEnvVar("IOTEDGE_IOTHUBHOSTNAME", envVars.GetEnvVar("IOTHUBHOSTNAME", string.Empty));
             config.IoTHubHostName = !string.IsNullOrEmpty(iotHubHostName) ? iotHubHostName : throw new InvalidOperationException("Either 'IOTEDGE_IOTHUBHOSTNAME' or 'IOTHUBHOSTNAME' environment variable should be populated");
 
@@ -198,9 +227,9 @@ namespace LoRaWan.NetworkServer
             config.IoTEdgeTimeout = envVars.GetEnvVar("IOTEDGE_TIMEOUT", config.IoTEdgeTimeout);
 
             // facadeurl is allowed to be null as the value is coming from the twin in production.
-            var facadeUrl = envVars.GetEnvVar("FACADE_SERVER_URL", string.Empty);
-            config.FacadeServerUrl = string.IsNullOrEmpty(facadeUrl) ? null : new Uri(envVars.GetEnvVar("FACADE_SERVER_URL", string.Empty));
-            config.FacadeAuthCode = envVars.GetEnvVar("FACADE_AUTH_CODE", string.Empty);
+            var deviceManagerServicesUrl = envVars.GetEnvVar("DEVICE_MANAGER_SERVICES_URL", string.Empty);
+            config.DeviceManagerServicesUrl = string.IsNullOrEmpty(deviceManagerServicesUrl) ? null : new Uri(envVars.GetEnvVar("DEVICE_MANAGER_SERVICES_URL", string.Empty));
+            config.DeviceManagerServicesCode = envVars.GetEnvVar("DEVICE_MANAGER_SERVICES_CODE", string.Empty);
             config.TenantId = envVars.GetEnvVar("TENANT_ID", string.Empty);
             config.TenantKey = envVars.GetEnvVar("TENANT_KEY", string.Empty);
             config.LogLevel = envVars.GetEnvVar("LOG_LEVEL", config.LogLevel);

@@ -270,19 +270,19 @@ namespace LoRaWan.Tools.CLI
             var tokenReplacements = new Dictionary<string, string>
             {
                 { "[$reset_pin]", opts.ResetPin.ToString() },
-                { "[\"$spi_speed\"]", opts.SpiSpeed == AddGatewayOption.DefaultSpiSpeed ? string.Empty : ",\"SPI_SPEED\":{\"value\":\"2\"}" },
+                { "[\"$spi_speed\"]", opts.SpiSpeed == AddGatewayOption.DefaultSpiSpeed ? string.Empty : $",\"SPI_SPEED\":{{\"value\":\"{opts.SpiSpeed}\"}}" },
                 { "[\"$spi_dev\"]", opts.SpiDev == AddGatewayOption.DefaultSpiDev ? string.Empty : $",\"SPI_DEV\":{{\"value\":\"{opts.SpiDev}\"}}" },
 
-                { "[\"$local_redis_connection_string\"]", opts.LocalRedisConnnectionString == AddGatewayOption.DefaultLocalRedisConnnectionString ? string.Empty : $",\"REDIS_CONNECTION_STRING\":{{\"value\":\"{opts.LocalRedisConnnectionString}\"}}" },
+                { "[\"$local_redis_connection_string\"]", opts.LocalRedisConnnectionString == AddGatewayOption.DefaultLocalRedisConnnectionString ? string.Empty : $",\"LOCAL_DEVICE_MANAGER_REDIS_CONNECTION_STRING\":{{\"value\":\"{opts.LocalRedisConnnectionString}\"}}" },
                 { "[\"$local_redis_module\"]", opts.LocalRedisModuleImage == AddGatewayOption.DefaultLocalRedisModuleImage ? 
                     string.Empty :
                     $"\"CacheModule\":{{\"type\":\"docker\",\"settings\":{{\"image\":\"{opts.LocalRedisModuleImage}\",\"createOptions\":\"{{\\\"HostConfig\\\":{{\\\"NetworkMode\\\":\\\"host\\\"{(opts.LocalRedisParamsEscapedJsonString.Length == 0 ? string.Empty : $",{opts.LocalRedisParamsEscapedJsonString}")}}}}}\"}},\"version\":\"1.0\",\"env\":{{}},\"status\":\"running\",\"restartPolicy\":\"always\"}},"
                 },
 
 
-                { "[$TWIN_FACADE_SERVER_URL]", opts.ApiURL.ToString() },
-                { "[$TWIN_FACADE_AUTH_CODE]", opts.ApiAuthCode },
-                { "[$TWIN_HOST_ADDRESS]", opts.TwinHostAddress },
+                { "[$DEVICE_MANAGER_SERVICES_URL]", opts.DeviceManagerServicesUrl.ToString() },
+                { "[$DEVICE_MANAGER_SERVICES_CODE]", opts.DeviceManagerServicesCode },
+                { "[$TWIN_HOST_ADDRESS]", opts.LnsHostAddress },
                 { "[$TWIN_NETWORK]", opts.Network },
                 { "[$az_edge_version]", opts.AzureIotEdgeVersion },
                 { "[$lora_version]", opts.LoRaVersion },

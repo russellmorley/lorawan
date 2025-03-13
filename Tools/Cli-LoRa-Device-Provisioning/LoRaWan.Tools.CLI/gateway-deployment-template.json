@@ -46,7 +46,7 @@
           "LoRaWanNetworkSrvModule": {
             "type": "docker",
             "settings": {
-              "image": "loraedge/lorawannetworksrvmodule:[$lora_version]",
+              "image": "russellgm/lorawannetworksrvmodule:[$lora_version]",
               "createOptions": "{\"ExposedPorts\": { \"5000/tcp\": {}}, \"HostConfig\": {  \"PortBindings\": {\"5000/tcp\": [  { \"HostPort\": \"5000\", \"HostIp\":\"172.17.0.1\" } ]}}}"
             },
             "version": "1.0",
@@ -109,8 +109,8 @@
     },
     "LoRaWanNetworkSrvModule": {
       "properties.desired": {
-        "FacadeServerUrl": "[$TWIN_FACADE_SERVER_URL]",
-        "FacadeAuthCode": "[$TWIN_FACADE_AUTH_CODE]",
+        "DeviceManagerServicesUrl": "[$DEVICE_MANAGER_SERVICES_URL]",
+        "DeviceManagerServicesCode": "[$DEVICE_MANAGER_SERVICES_CODE]",
         "hostAddress": "[$TWIN_HOST_ADDRESS]",
         "network": "[$TWIN_NETWORK]"
         ["$tenant_id"]

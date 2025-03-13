@@ -5,7 +5,7 @@
       dockerfile: ./LoraDeviceManagerServices/Dockerfile
       args:
         - TargetFramework=net8.0  # must be a TFM: https://learn.microsoft.com/en-us/dotnet/standard/frameworks#latest-versions
-    image: russellgm/loradevicemanagerservices:v1.0
+    image: russellgm/loradevicemanagerservices:2.2.3
     ports:
       - "80:80"
     depends_on:

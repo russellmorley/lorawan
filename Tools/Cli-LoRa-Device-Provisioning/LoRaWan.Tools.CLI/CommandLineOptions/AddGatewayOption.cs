@@ -11,7 +11,7 @@ namespace LoRaWan.Tools.CLI.Options
     {
         internal const int DefaultSpiSpeed = 8;
         internal const int DefaultSpiDev = 0;
-        internal const string DefaultAzureIotEdgeVersion = "1.4";
+        internal const string DefaultAzureIotEdgeVersion = "1.5";
         internal const string DefaultLnsHostAddress = "ws://mylns:5000";
         internal const string DefaultNetwork = "quickstartnetwork";
         internal const string DefaultLocalRedisConnnectionString = "";
@@ -52,19 +52,19 @@ namespace LoRaWan.Tools.CLI.Options
         public string DeviceId { get; set; }
 
         [Option(
-            "api-url",
+            "devicemanagerservices-url",
             Required = true,
-            HelpText = "API URL to LoRa Function"
+            HelpText = "Device manager services URL"
             )]
-        public Uri ApiURL { get; set; }
+        public Uri DeviceManagerServicesUrl { get; set; }
 
 
         [Option(
-            "api-key",
+            "devicemanagerservices-code",
             Required = true,
-            HelpText = "API authorization key"
+            HelpText = "Device manager services code authentication queryparam"
         )]
-        public string ApiAuthCode { get; set; }
+        public string DeviceManagerServicesCode { get; set; }
 
         [Option(
             "lns-host-address",
@@ -72,7 +72,7 @@ namespace LoRaWan.Tools.CLI.Options
             Default = DefaultLnsHostAddress,
             HelpText = "LNS host address"
             )]
-        public string TwinHostAddress { get; set; }
+        public string LnsHostAddress { get; set; }
 
         [Option(
             "network",
