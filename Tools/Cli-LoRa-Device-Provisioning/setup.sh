@@ -51,7 +51,7 @@ create_devices_with_lora_cli() {
 # see https://www.gnu.org/software/bash/manual/html_node/Shell-Parameter-Expansion.html
 STATION_DEVICE_NAME=${STATION_DEVICE_NAME:-AA555A0000000101}
 # was EU863
-REGION=${REGION:-US915}
+REGION=${REGION:-US902}
 NETWORK=${NETWORK-quickstartnetwork}
 LNS_HOST_ADDRESS=${LNS_HOST_ADDRESS-ws://mylns:5000}
 SPI_DEV=${SPI_DEV-0}
@@ -62,7 +62,7 @@ LORA_CLI_URL='https://github.com/Azure/iotedge-lorawan-starterkit/releases/downl
 MONITORING_ENABLED=1
 # Set this to the same name as a iotedge device created in iot hub.
 EDGE_GATEWAY_NAME=
-RESET_PIN
+RESET_PIN=23
 FACADE_SERVER_URL
 FACADE_AUTH_CODE
 IOTHUB_RESOURCE_ID

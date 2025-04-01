@@ -92,7 +92,7 @@ namespace LoRaWan.NetworkServer
                         var logger = (ILogger)state;
                         try
                         {
-                            using var scope = logger.BeginDeviceScope(client.DevEui);
+                            using var scope = logger.BeginDeviEuiScope(client.DevEui);
                             await client.DisconnectAsync(CancellationToken.None);
                         }
                         catch (Exception ex) when (ExceptionFilterUtility.False(() => logger.LogError(ex, "Error while disconnecting client ({DevEUI}) due to cache eviction.", client.DevEui)))

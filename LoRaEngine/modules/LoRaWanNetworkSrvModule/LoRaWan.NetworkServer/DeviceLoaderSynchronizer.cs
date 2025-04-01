@@ -130,7 +130,7 @@ namespace LoRaWan.NetworkServer
 
                 foreach (var foundDevice in devices)
                 {
-                    using var scope = this.logger.BeginDeviceScope(foundDevice.DevEUI);
+                    using var scope = this.logger.BeginDeviEuiScope(foundDevice.DevEUI);
                     // Only create devices that does not exist in the cache
                     if (!this.loraDeviceCache.TryGetByDevEui(foundDevice.DevEUI, out var cachedDevice))
                     {

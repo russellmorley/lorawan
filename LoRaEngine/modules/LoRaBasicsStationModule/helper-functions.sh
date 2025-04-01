@@ -42,15 +42,29 @@ cupsCertCopy() {
     fi
 }
 
+RESET_PIN=23
+POWER_PIN=18
+GPIO_CHIP=gpiochip0
+# SUPER-CONFUSINGLY, apt-get install gpio installs version 1.6.3, https://web.git.kernel.org/pub/scm/libs/libgpiod/libgpiod.git/?h=v1.6.x, whose
+# interface is completely different than v2.X! 
+GPIOSET="gpioset -m time -u 100000 ${GPIO_CHIP}"
+
 resetPin() {
-    if [[ -z "$RESET_PIN" ]]; then
-        echo "No RESET_PIN environment variable set, skipping the pin reset. If you experience problem with starting the concentrator please set this variable to your manufacturer reset pin"
-    else
-        echo "Resetting the pin"
-        ./reset_lgw.sh stop $RESET_PIN
-        ./reset_lgw.sh start $RESET_PIN
-        echo "Finished resetting the pin"
-    fi
+    echo "Resetting the pin"
+    #./reset_lgw.sh stop $RESET_PIN
+    #./reset_lgw.sh start $RESET_PIN
+    # Prior version of reset_lgw.sh at https://github.com/lorabasics/basicstation/blob/master/examples/corecell/reset_lgw.sh.
+    # upgraded to 6.6+ kernel's inteface. (https://github.com/lorabasics/basicstation/issues/206 and https://forums.raspberrypi.com/viewtopic.php?t=367431) in
+    # NOTE: reset_lgw.sh never used $RESET_PIN parameter, so it was removed.
+
+    echo "CoreCell power enable through GPIO$POWER_PIN..."
+    ${GPIOSET} ${POWER_PIN}=1 2>/dev/null
+    
+    echo "CoreCell reset through GPIO$RESET_PIN..."
+    ${GPIOSET} "${RESET_PIN}"=0 2>/dev/null
+    ${GPIOSET} "${RESET_PIN}"=1 2>/dev/null
+    ${GPIOSET} "${RESET_PIN}"=0 2>/dev/null
+    echo "Finished resetting the pin"
 }
 
 setFixedStationEui() {

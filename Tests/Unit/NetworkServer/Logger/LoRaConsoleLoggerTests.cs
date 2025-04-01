@@ -45,7 +45,7 @@ namespace LoRaWan.Tests.Unit.NetworkServer.Logger
 
             var devEUI = new DevEui(0x12345678);
             const string message = "test";
-            using var scope = logger.BeginDeviceScope(devEUI);
+            using var scope = logger.BeginDeviEuiScope(devEUI);
             logger.LogInformation(message);
 
             var expected = useScopes ? devEUI + " " + message : message;
@@ -65,7 +65,7 @@ namespace LoRaWan.Tests.Unit.NetworkServer.Logger
 
             var devEUI = new DevEui(0x12345678);
             var message = devEUI + " test";
-            using var scope = logger.BeginDeviceScope(devEUI);
+            using var scope = logger.BeginDeviEuiScope(devEUI);
             logger.LogInformation(message);
 
             moqInfo.Verify(x => x.Invoke(It.Is<string>(x => x == message)), Times.Once);
@@ -87,9 +87,9 @@ namespace LoRaWan.Tests.Unit.NetworkServer.Logger
             var logger = new TestLoRaConsoleLogger(moqInfo.Object, null, provider.Object);
 
             // act
-            using var euiScope = devEuiScope is { } someDevEuiScope ? logger.BeginDeviceScope(DevEui.Parse(someDevEuiScope)) : default;
-            using var addrScope = devAddrScope is null ? default : logger.BeginDeviceAddressScope(devAddrScope);
-            using var statScope = stationEuiScope is { } s ? logger.BeginEuiScope(new StationEui((ulong)s)) : default;
+            using var euiScope = devEuiScope is { } someDevEuiScope ? logger.BeginDeviEuiScope(DevEui.Parse(someDevEuiScope)) : default;
+            using var addrScope = devAddrScope is null ? default : logger.BeginDevAddrStringScope(devAddrScope);
+            using var statScope = stationEuiScope is { } s ? logger.BeginStationEuiScope(new StationEui((ulong)s)) : default;
             logger.LogInformation("foo");
 
             // assert
@@ -108,7 +108,7 @@ namespace LoRaWan.Tests.Unit.NetworkServer.Logger
             const string message = "foo";
 
             // act
-            using var scope = logger.BeginDeviceAddressScope(devAddr);
+            using var scope = logger.BeginDevAddrStringScope(devAddr);
             logger.LogInformation(message);
 
             // assert

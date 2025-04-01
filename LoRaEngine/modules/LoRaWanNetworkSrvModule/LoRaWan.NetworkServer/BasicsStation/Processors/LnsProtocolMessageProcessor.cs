@@ -92,7 +92,7 @@ namespace LoRaWan.NetworkServer.BasicsStation.Processors
                 StationEui.Parse(sEui.ToString())
                 : throw new InvalidOperationException($"{BasicsStationNetworkServer.RouterIdPathParameterName} was not present on path.");
 
-            using var scope = this.logger.BeginEuiScope(stationEui);
+            using var scope = this.logger.BeginStationEuiScope(stationEui);
             this.registryMetricTagBag.StationEui.Value = stationEui;
 
             var channel = new WebSocketTextChannel(socket, sendTimeout: TimeSpan.FromSeconds(3));
@@ -171,7 +171,7 @@ namespace LoRaWan.NetworkServer.BasicsStation.Processors
                     {
                         var updf = LnsData.UpstreamDataFrameReader.Read(json);
 
-                        using var scope = this.logger.BeginDeviceAddressScope(updf.DevAddr);
+                        using var scope = this.logger.BeginDevAddrScope(updf.DevAddr);
                         this.uplinkMessageCounter?.Add(1);
 
                         var routerRegion = await this.basicsStationConfigurationService.GetRegionAsync(stationEui, cancellationToken);

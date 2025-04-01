@@ -42,7 +42,7 @@ namespace LoRaWan.NetworkServer.BasicsStation
                 return false;
             }
 
-            using var scope = this.logger.BeginEuiScope(stationEui);
+            using var scope = this.logger.BeginStationEuiScope(stationEui);
 
             // Logging any chain related issue that is causing verification to fail
             if (chain.ChainStatus.Any(s => s.Status != X509ChainStatusFlags.NoError))

@@ -11,3 +11,7 @@ Then either
 or 
 
 `docker compose up`
+
+to run as daemon. Since restart: always, will restart automatically on reboot:
+
+`docker compose up -d`

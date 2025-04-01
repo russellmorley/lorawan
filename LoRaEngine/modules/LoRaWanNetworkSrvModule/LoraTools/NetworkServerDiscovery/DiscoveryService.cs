@@ -57,7 +57,7 @@ namespace LoRaTools.NetworkServerDiscovery
                     var json = message.Current;
                     var stationEui = QueryReader.Read(json);
 
-                    using var scope = this.logger.BeginEuiScope(stationEui);
+                    using var scope = this.logger.BeginStationEuiScope(stationEui);
                     this.logger.LogInformation("Received discovery request from: {StationEui}", stationEui);
 
                     try

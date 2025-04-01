@@ -84,7 +84,7 @@ namespace LoRaWan.NetworkServer
         private void DispatchLoRaDataMessage(LoRaRequest request)
         {
             var loRaPayload = (LoRaPayloadData)request.Payload;
-            using var scope = this.logger.BeginDeviceAddressScope(loRaPayload.DevAddr);
+            using var scope = this.logger.BeginDevAddrScope(loRaPayload.DevAddr);
             if (!IsValidNetId(loRaPayload.DevAddr))
             {
                 this.logger.LogDebug($"device is using another network id, ignoring this message (network: {this.configuration.NetId}, devAddr: {loRaPayload.DevAddr.NetworkId})");

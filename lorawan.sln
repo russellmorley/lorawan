@@ -12,10 +12,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LoRaWan", "LoRaEngine\modul
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{67C7C34B-B11C-4E10-9D97-728FB122683F}"
 	ProjectSection(SolutionItems) = preProject
+		LoRaEngine\.env = LoRaEngine\.env
+		LoRaEngine\compose.yaml = LoRaEngine\compose.yaml
 		Directory.Build.props = Directory.Build.props
 		LoRaEngine\docker-bake.hcl = LoRaEngine\docker-bake.hcl
-		LoRaEngine\example.env = LoRaEngine\example.env
-		README.md = README.md
+		LoRaEngine\Readme.md = LoRaEngine\Readme.md
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LoRaWan.Tests.Common", "Tests\Common\LoRaWan.Tests.Common.csproj", "{0A3CCF9E-46E8-4901-8C9A-BCFC0EBD213B}"
@@ -41,10 +42,19 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoraDeviceManagerServices",
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NetworkServerModuleBuild", "NetworkServerModuleBuild", "{20E752D2-951B-4046-A727-B78E358DE967}"
 	ProjectSection(SolutionItems) = preProject
-		LoRaEngine\.env = LoRaEngine\.env
-		LoRaEngine\compose.yaml = LoRaEngine\compose.yaml
 		LoRaEngine\modules\LoRaWanNetworkSrvModule\Dockerfile = LoRaEngine\modules\LoRaWanNetworkSrvModule\Dockerfile
-		LoRaEngine\Readme.md = LoRaEngine\Readme.md
+		LoRaEngine\modules\LoRaWanNetworkSrvModule\start.sh = LoRaEngine\modules\LoRaWanNetworkSrvModule\start.sh
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BasicsStationBuild", "BasicsStationBuild", "{0116C60E-5F44-4E37-BE68-3BA1DFE3FEBD}"
+	ProjectSection(SolutionItems) = preProject
+		LoRaEngine\modules\LoRaBasicsStationModule\corecell.station.conf = LoRaEngine\modules\LoRaBasicsStationModule\corecell.station.conf
+		LoRaEngine\modules\LoRaBasicsStationModule\Dockerfile.amd64 = LoRaEngine\modules\LoRaBasicsStationModule\Dockerfile.amd64
+		LoRaEngine\modules\LoRaBasicsStationModule\Dockerfile.arm32v7 = LoRaEngine\modules\LoRaBasicsStationModule\Dockerfile.arm32v7
+		LoRaEngine\modules\LoRaBasicsStationModule\Dockerfile.arm64v8 = LoRaEngine\modules\LoRaBasicsStationModule\Dockerfile.arm64v8
+		LoRaEngine\modules\LoRaBasicsStationModule\helper-functions.sh = LoRaEngine\modules\LoRaBasicsStationModule\helper-functions.sh
+		LoRaEngine\modules\LoRaBasicsStationModule\start_basicsstation.sh = LoRaEngine\modules\LoRaBasicsStationModule\start_basicsstation.sh
+		LoRaEngine\modules\LoRaBasicsStationModule\sx1301.station.conf = LoRaEngine\modules\LoRaBasicsStationModule\sx1301.station.conf
 	EndProjectSection
 EndProject
 Global
@@ -162,6 +172,7 @@ Global
 		{A871D30D-2634-4321-A0EB-B116A1BA1CD3} = {A3AF6806-947C-426F-8063-7229B71A4472}
 		{4FA0718D-15A2-4D4E-9310-7FB17B285757} = {A3AF6806-947C-426F-8063-7229B71A4472}
 		{20E752D2-951B-4046-A727-B78E358DE967} = {67C7C34B-B11C-4E10-9D97-728FB122683F}
+		{0116C60E-5F44-4E37-BE68-3BA1DFE3FEBD} = {67C7C34B-B11C-4E10-9D97-728FB122683F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FD60E938-DB16-4486-8BEF-4F2CE460E71D}

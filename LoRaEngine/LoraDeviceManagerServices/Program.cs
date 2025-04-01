@@ -47,7 +47,8 @@ var host = new HostBuilder()
                 options.Rules.Remove(defaultRule);
             }
         });
-        // logging.AddConsole(); //not needed, aspnet core defaults to console logger.
+        logging.AddConsole();
+        logging.SetMinimumLevel(LogLevel.Debug);
     })
     .Build();
 

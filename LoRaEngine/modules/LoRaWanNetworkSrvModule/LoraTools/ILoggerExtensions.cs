@@ -3,10 +3,10 @@
 
 namespace LoRaTools
 {
-    using System;
-    using System.Collections.Generic;
     using LoRaWan;
     using Microsoft.Extensions.Logging;
+    using System;
+    using System.Collections.Generic;
 
     public static class ILoggerExtensions
     {
@@ -14,18 +14,18 @@ namespace LoRaTools
         public const string DeviceAddressKey = "DevAddr";
         public const string StationEuiKey = "StationEUI";
 
-        public static IDisposable BeginDeviceScope(this ILogger logger, DevEui? devEUI) =>
-            devEUI is { } someDevEui
+        public static IDisposable BeginDeviEuiScope(this ILogger logger, DevEui? devEui) =>
+            devEui is { } someDevEui
             ? logger?.BeginScope(new Dictionary<string, object> { [DevEUIKey] = someDevEui.ToString() })
             : NoopDisposable.Instance;
 
-        public static IDisposable BeginDeviceAddressScope(this ILogger logger, DevAddr? devAddr) =>
-            devAddr is { } someDevAddr ? logger?.BeginDeviceAddressScope(someDevAddr.ToString()) : NoopDisposable.Instance;
+        public static IDisposable BeginDevAddrScope(this ILogger logger, DevAddr? devAddr) =>
+            devAddr is { } someDevAddr ? logger?.BeginDevAddrStringScope(someDevAddr.ToString()) : NoopDisposable.Instance;
 
-        public static IDisposable BeginDeviceAddressScope(this ILogger logger, string deviceAddress) =>
-            logger?.BeginScope(new Dictionary<string, object> { [DeviceAddressKey] = deviceAddress });
+        public static IDisposable BeginDevAddrStringScope(this ILogger logger, string devAddrString) =>
+            logger?.BeginScope(new Dictionary<string, object> { [DeviceAddressKey] = devAddrString });
 
-        public static IDisposable BeginEuiScope(this ILogger logger, StationEui eui) =>
-            logger?.BeginScope(new Dictionary<string, object> { [StationEuiKey] = eui.ToString() });
+        public static IDisposable BeginStationEuiScope(this ILogger logger, StationEui stationEui) =>
+            logger?.BeginScope(new Dictionary<string, object> { [StationEuiKey] = stationEui.ToString() });
     }
 }

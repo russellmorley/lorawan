@@ -35,47 +35,71 @@ namespace LoraDeviceManagerServices.LoraDeviceManagerServices
 
         [Function(nameof(FunctionBundler))]
         public async Task<IActionResult> FunctionBundler(
-            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "FunctionBundler/{devEUI}")] HttpRequest req,
-            string devEUI)
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "FunctionBundler/{paramDevEUI}")] HttpRequest request,
+            string paramDevEUI)
         {
+            ArgumentNullException.ThrowIfNull(request);
+
+            using var scope = logger.BeginScope("{RelativePath}: ", nameof(FunctionBundler));
+            logger.LogDebug("QueryParams: {Query}", JsonConvert.SerializeObject(request.Query));
+            logger.LogDebug("Path param paramDevEUI: {ParamDevEUI}", paramDevEUI);
+            string bodyString;
+            using (var reader = new StreamReader(request.Body))
+            {
+                bodyString = await reader.ReadToEndAsync();
+                logger.LogDebug("Post body: {BodyString}", bodyString);
+            }
+
             try
             {
-                VersionValidator.Validate(req);
+                VersionValidator.Validate(request);
             }
             catch (IncompatibleVersionException ex)
             {
+                logger.LogError(ex, "{ExceptionType}: {Message}", ex.GetType().Name, ex.Message);
                 return new BadRequestObjectResult(ex.Message);
             }
 
-            if (!DevEui.TryParse(devEUI, EuiParseOptions.ForbidInvalid, out var parsedDevEui))
+            if (!DevEui.TryParse(paramDevEUI, EuiParseOptions.ForbidInvalid, out var devEui))
             {
-                return new BadRequestObjectResult("Dev EUI is invalid.");
+                return new BadRequestObjectResult("DevEUI is invalid.");
             }
 
             try
             {
-                await tenantValidationStrategy.ValidateRequestAndEui(parsedDevEui.ToString(), req);
+                await tenantValidationStrategy.ValidateRequestAndEui(devEui.ToString(), request);
             }
-            catch (InvalidDataException ide)
+            catch (InvalidDataException ex)
             {
-                return new BadRequestObjectResult(ide.Message);
+                logger.LogError(ex, "{ExceptionType}: {Message}", ex.GetType().Name, ex.Message);
+                return new BadRequestObjectResult(ex.Message);
             }
-            catch (ArgumentException)
+            catch (ArgumentException ex)
             {
+                logger.LogError(ex, "{ExceptionType}: {Message}", ex.GetType().Name, ex.Message);
                 return new NotFoundResult();
             }
 
-            using var deviceScope = logger.BeginDeviceScope(parsedDevEui);
+            using var deviceScope = logger.BeginDeviEuiScope(devEui);
 
-            var requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            if (string.IsNullOrEmpty(requestBody))
+            if (string.IsNullOrEmpty(bodyString))
             {
-                return new BadRequestObjectResult("missing body");
+                var message = "Empty body string that should contain serialized FunctionBundlerRequest";
+                logger.LogError(message);
+                return new BadRequestObjectResult(message);
             }
 
-            var functionBundlerRequest = JsonConvert.DeserializeObject<FunctionBundlerRequest>(requestBody);
-            var result = await loraDeviceManager.ExecuteFunctionBundlerAsync(parsedDevEui, functionBundlerRequest);
-            return new OkObjectResult(result);
+            var functionBundlerRequest = JsonConvert.DeserializeObject<FunctionBundlerRequest>(bodyString);
+            if (functionBundlerRequest == null)
+            {
+                var message = "Cannot deserialize body into a FunctionBundlerRequest";
+                logger.LogError(message);
+                return new BadRequestObjectResult(message);
+            }
+
+            var functionBundlerResult = await loraDeviceManager.ExecuteFunctionBundlerAsync(devEui, functionBundlerRequest);
+            logger.LogDebug("Returning FunctionBundlerResult of {FunctionBundlerResult}", JsonConvert.SerializeObject(functionBundlerResult));
+            return new OkObjectResult(functionBundlerResult);
         }
     }
 }

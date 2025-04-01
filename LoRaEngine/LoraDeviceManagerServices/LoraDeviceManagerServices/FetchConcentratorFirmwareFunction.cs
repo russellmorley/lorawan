@@ -18,6 +18,7 @@ namespace LoraDeviceManagerServices.LoraDeviceManagerServices
     using Microsoft.Azure.Devices.Common.Exceptions;
     using Exceptions;
     using Version;
+    using LoRaTools;
 
     public class FetchConcentratorFirmwareFunction
     {
@@ -36,48 +37,60 @@ namespace LoraDeviceManagerServices.LoraDeviceManagerServices
         }
 
         [Function(nameof(FetchConcentratorFirmware))]
-        public async Task<IActionResult> FetchConcentratorFirmware([HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequest req,
+        public async Task<IActionResult> FetchConcentratorFirmware([HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequest request,
                                                                    CancellationToken cancellationToken)
         {
-            if (req is null) throw new ArgumentNullException(nameof(req));
+            ArgumentNullException.ThrowIfNull(request);
+
+            using var scope = logger.BeginScope("{RelativePath}: ", nameof(FetchConcentratorFirmware));
+            logger.LogDebug("QueryParams: {Query}", JsonConvert.SerializeObject(request.Query));
+            using (var reader = new StreamReader(request.Body))
+            {
+                logger.LogDebug("Post body: {Body}", await reader.ReadToEndAsync());
+            }
 
             try
             {
-                VersionValidator.Validate(req);
+                VersionValidator.Validate(request);
             }
             catch (IncompatibleVersionException ex)
             {
-                logger.LogError(ex, "Invalid version");
+                logger.LogError(ex, "{ExceptionType}: {Message}", ex.GetType().Name, ex.Message);
                 return new BadRequestObjectResult(ex.Message);
             }
 
-            if (!StationEui.TryParse((string)req.Query["StationEui"], out var stationEui))
+            if (!StationEui.TryParse((string)request.Query["StationEui"], out var stationEui))
             {
                 logger.LogError("StationEui missing in request or invalid");
                 return new BadRequestObjectResult("StationEui missing in request or invalid");
             }
 
+            using var deviceScope = logger.BeginStationEuiScope(stationEui);
+
             try
             {
-                await tenantValidationStrategy.ValidateRequestAndEui(stationEui.ToString(), req);
+                await tenantValidationStrategy.ValidateRequestAndEui(stationEui.ToString(), request);
             }
-            catch (InvalidDataException ide)
+            catch (InvalidDataException ex)
             {
-                return new BadRequestObjectResult(ide.Message);
+                logger.LogError(ex, "{ExceptionType}: {Message}", ex.GetType().Name, ex.Message);
+                return new BadRequestObjectResult(ex.Message);
             }
-            catch (ArgumentException)
+            catch (ArgumentException ex)
             {
+                logger.LogError(ex, "{ExceptionType}: {Message}", ex.GetType().Name, ex.Message);
                 return new NotFoundResult();
             }
 
             try
             {
                 (long length, Stream contentStream) = await loraDeviceManager.GetStationFirmware(stationEui, cancellationToken);
-
+                logger.LogDebug("Returning content stream of length {Length}", length);
                 return new FileStreamWithContentLengthResult(contentStream, "application/octet-stream", length);
             }
-            catch (DeviceNotFoundException)
+            catch (DeviceNotFoundException ex)
             {
+                logger.LogDebug(ex, "{ExceptionType}: {Message}", ex.GetType().Name, ex.Message);
                 return new NotFoundResult();
             }
             catch (Exception ex) when (ex is ArgumentOutOfRangeException or JsonReaderException or NullReferenceException)
@@ -89,7 +102,7 @@ namespace LoraDeviceManagerServices.LoraDeviceManagerServices
                     StatusCode = (int)HttpStatusCode.InternalServerError,
                 };
             }
-            catch (RequestFailedException ex) when (ExceptionFilterUtility.True(() => logger.LogError(ex, "Failed to download firmware from storage.")))
+            catch (RequestFailedException ex) when (ExceptionFilterUtility.True(() => logger.LogError(ex, "Failed to download firmware")))
             {
                 return new ObjectResult("Failed to download firmware")
                 {

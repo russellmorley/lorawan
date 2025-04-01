@@ -7,6 +7,7 @@ namespace LoraDeviceManagerServices.LoraDeviceManagerServices
     using System.Threading;
     using System.Threading.Tasks;
     using LoRaWan;
+    using LoRaTools;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Logging;
@@ -36,22 +37,29 @@ namespace LoraDeviceManagerServices.LoraDeviceManagerServices
         }
 
         [Function(nameof(FetchConcentratorCredentials))]
-        public async Task<IActionResult> FetchConcentratorCredentials([HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequest req,
+        public async Task<IActionResult> FetchConcentratorCredentials([HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequest request,
                                                                       CancellationToken cancellationToken)
         {
-            if (req is null) throw new ArgumentNullException(nameof(req));
+            ArgumentNullException.ThrowIfNull(request);
+
+            using var scope = logger.BeginScope("{RelativePath}: ", nameof(FetchConcentratorCredentials));
+            logger.LogDebug("QueryParams: {Query}", JsonConvert.SerializeObject(request.Query));
+            using (var reader = new StreamReader(request.Body))
+            {
+                logger.LogDebug("Post body: {Body}", await reader.ReadToEndAsync());
+            }
 
             try
             {
-                VersionValidator.Validate(req);
+                VersionValidator.Validate(request);
             }
             catch (IncompatibleVersionException ex)
             {
-                logger.LogError(ex, "Invalid version");
+                logger.LogError(ex, "{ExceptionType}: {Message}", ex.GetType().Name, ex.Message);
                 return new BadRequestObjectResult(ex.Message);
             }
 
-            return await RunFetchConcentratorCredentials(req, cancellationToken);
+            return await RunFetchConcentratorCredentials(request, cancellationToken);
         }
 
         internal async Task<IActionResult> RunFetchConcentratorCredentials(HttpRequest req, CancellationToken cancellationToken)
@@ -62,6 +70,8 @@ namespace LoraDeviceManagerServices.LoraDeviceManagerServices
                 return new BadRequestObjectResult("StationEui missing in request or invalid");
             }
 
+            using var deviceScope = logger.BeginStationEuiScope(stationEui);
+
             var credentialTypeQueryString = req.Query["CredentialType"];
             if (StringValues.IsNullOrEmpty(credentialTypeQueryString))
             {
@@ -70,20 +80,22 @@ namespace LoraDeviceManagerServices.LoraDeviceManagerServices
             }
             if (!Enum.TryParse<ConcentratorCredentialType>(credentialTypeQueryString.ToString(), out var credentialType))
             {
-                logger.LogError("Could not parse '{QueryString}' to a ConcentratorCredentialType.", credentialTypeQueryString.ToString());
-                return new BadRequestObjectResult($"Could not parse desired concentrator credential type '{credentialTypeQueryString}'.");
+                logger.LogError("Could not parse '{CredentialTypeQueryString}' to a ConcentratorCredentialType.", credentialTypeQueryString.ToString());
+                return new BadRequestObjectResult($"Could not parse '{credentialTypeQueryString}' to a ConcentratorCredentialType.");
             }
 
             try
             {
                 await tenantValidationStrategy.ValidateRequestAndEui(stationEui.ToString(), req);
             }
-            catch (InvalidDataException ide)
+            catch (InvalidDataException ex)
             {
-                return new BadRequestObjectResult(ide.Message);
+                logger.LogError(ex, "{ExceptionType}: {Message}", ex.GetType().Name, ex.Message);
+                return new BadRequestObjectResult(ex.Message);
             }
-            catch (ArgumentException)
+            catch (ArgumentException ex)
             {
+                logger.LogError(ex, "{ExceptionType}: {Message}", ex.GetType().Name, ex.Message);
                 return new NotFoundResult();
             }
 
@@ -92,9 +104,10 @@ namespace LoraDeviceManagerServices.LoraDeviceManagerServices
                 var credentials = await loraDeviceManager.GetStationCredentials(stationEui, credentialType, cancellationToken);
                 if (string.IsNullOrWhiteSpace(credentials))
                 {
-                    logger.LogInformation($"Searching for {stationEui} returned 0 devices");
+                    logger.LogInformation("Searching for {StationEui} returned 0 devices", stationEui);
                     return new NotFoundResult();
                 }
+                logger.LogDebug("Returning credentials {Credentials}", credentials);
                 return new OkObjectResult(credentials);
             }
             catch (Exception ex) when (ex is ArgumentOutOfRangeException
@@ -102,7 +115,7 @@ namespace LoraDeviceManagerServices.LoraDeviceManagerServices
                                           or InvalidCastException
                                           or InvalidOperationException)
             {
-                logger.LogError(ex, ex.Message);
+                logger.LogError(ex, "{ExceptionType}: {Message}", ex.GetType().Name, ex.Message);
                 return new ObjectResult(ex.Message)
                 {
                     StatusCode = (int)HttpStatusCode.InternalServerError,

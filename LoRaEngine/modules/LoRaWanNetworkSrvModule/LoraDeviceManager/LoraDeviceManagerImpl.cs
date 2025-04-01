@@ -274,7 +274,7 @@ namespace LoraDeviceManager
 
         public async Task<string> GetStationCredentials(StationEui eui, ConcentratorCredentialType credentialtype, CancellationToken cancellationToken)
         {
-            using var stationScope = this.logger.BeginEuiScope(eui);
+            using var stationScope = this.logger.BeginStationEuiScope(eui);
 
             var twin = await this.deviceRegistryManager.GetTwinAsync(eui.ToString(), cancellationToken);
             if (twin != null)
@@ -298,7 +298,7 @@ namespace LoraDeviceManager
 
         public async Task<(long length, Stream contentStream)> GetStationFirmware(StationEui eui, CancellationToken token)
         {
-            using var stationScope = this.logger.BeginEuiScope(eui);
+            using var stationScope = this.logger.BeginStationEuiScope(eui);
 
             var twin = await this.deviceRegistryManager.GetTwinAsync(eui.ToString("N", CultureInfo.InvariantCulture), token);
             if (twin != null)

@@ -78,7 +78,7 @@ namespace LoraDeviceManagerServices.LoraDeviceDownstreamService
                 return new BadRequestObjectResult(ex.Message);
             }
 
-            using var deviceScope = logger.BeginDeviceScope(parsedDevEui);
+            using var deviceScope = logger.BeginDeviEuiScope(parsedDevEui);
 
             var requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             if (string.IsNullOrEmpty(requestBody))

@@ -67,7 +67,7 @@ namespace LoRaWan.NetworkServer
                     return HttpStatusCode.BadRequest;
                 }
 
-                using var scope = this.logger.BeginDeviceScope(c2d.DevEUI);
+                using var scope = this.logger.BeginDeviEuiScope(c2d.DevEUI);
                 this.logger.LogDebug($"received cloud to device message from direct method: {json}");
 
                 if (await this.classCDeviceMessageSender.SendAsync(c2d, cancellationToken))
@@ -103,7 +103,7 @@ namespace LoRaWan.NetworkServer
                 return HttpStatusCode.BadRequest;
             }
 
-            using var scope = this.logger.BeginDeviceScope(c2d.DevEUI);
+            using var scope = this.logger.BeginDeviEuiScope(c2d.DevEUI);
 
             var loRaDevice = await this.loRaDeviceRegistry.GetDeviceByDevEUIAsync(c2d.DevEUI.Value);
             if (loRaDevice == null)

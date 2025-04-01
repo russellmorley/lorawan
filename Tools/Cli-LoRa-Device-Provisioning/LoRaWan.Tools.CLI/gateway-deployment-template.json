@@ -65,8 +65,8 @@
           "universaldecodermodule": {
             "type": "docker",
             "settings": {
-              "image": "docker.io/russellgm/universaldecoder:1.0-arm64",
-              "createOptions": "{}"
+              "image": "russellgm/universaldecoder:1.0-arm64",
+              "createOptions": "{\"ExposedPorts\": { \"80/tcp\": {}}, \"HostConfig\": {  \"PortBindings\": {\"80/tcp\": [  { \"HostPort\": \"6000\", \"HostIp\":\"172.17.0.1\" } ]}}}"
             },
             "version": "1.0",
             "status": "running",
@@ -76,12 +76,15 @@
           "LoRaBasicsStationModule": {
             "type": "docker",
             "settings": {
-              "image": "loraedge/lorabasicsstationmodule:[$lora_version]",
+              "image": "russellgm/lorabasicsstationmodule:[$lora_version]",
               "createOptions": "  {\"HostConfig\": {\"NetworkMode\": \"host\", \"Privileged\": true },  \"NetworkingConfig\": {\"EndpointsConfig\": {\"host\": {} }}}"
             },
             "env": {
               "RESET_PIN": {
                 "value": "[$reset_pin]"
+              },
+              "CORECELL": {
+                "value": "true"
               },
               "TC_URI": {
                 "value": "ws://172.17.0.1:5000"

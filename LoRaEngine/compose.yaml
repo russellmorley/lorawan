@@ -34,14 +34,29 @@ services:
     image: ${CONTAINER_REGISTRY_ADDRESS:?"CONTAINER_REGISTRY_ADDRESS environment variable need to be set"}/lorawannetworksrvmodule:${NET_SRV_VERSION:-0.0.1-local-arm64v8}
 
 
+
+
+
   lorabasicsstationmodule-arm32v7:
     build:
       context: ..
       dockerfile: LoRaEngine/modules/LoRaBasicsStationModule/Dockerfile.arm32v7
-    image: ${CONTAINER_REGISTRY_ADDRESS:?"CONTAINER_REGISTRY_ADDRESS environment variable need to be set"}/lorawanbasestation:${NET_SRV_VERSION:-0.0.1-local-arm32v7}
+      platforms:
+        - linux/arm/v7
+    image: ${CONTAINER_REGISTRY_ADDRESS:?"CONTAINER_REGISTRY_ADDRESS environment variable need to be set"}/lorabasicsstationmodule:${NET_SRV_VERSION:-0.0.1}
 
   lorabasicsstationmodule-amd64:
     build:
       context: ..
       dockerfile: LoRaEngine/modules/LoRaBasicsStationModule/Dockerfile.amd64
-    image: ${CONTAINER_REGISTRY_ADDRESS:?"CONTAINER_REGISTRY_ADDRESS environment variable need to be set"}/lorawanbasestation:${NET_SRV_VERSION:-0.0.1-local-amd64}
+      platforms:
+        - linux/amd64
+    image: ${CONTAINER_REGISTRY_ADDRESS:?"CONTAINER_REGISTRY_ADDRESS environment variable need to be set"}/lorabasicsstationmodule:${NET_SRV_VERSION:-0.0.1}
+
+  lorabasicsstationmodule-arm64:
+    build:
+      context: ..
+      dockerfile: LoRaEngine/modules/LoRaBasicsStationModule/Dockerfile.arm64v8
+      platforms:
+        - linux/arm64/v8
+    image: ${CONTAINER_REGISTRY_ADDRESS:?"CONTAINER_REGISTRY_ADDRESS environment variable need to be set"}/lorabasicsstationmodule:${NET_SRV_VERSION:-0.0.1}

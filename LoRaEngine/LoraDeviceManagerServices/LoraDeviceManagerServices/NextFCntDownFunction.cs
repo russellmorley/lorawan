@@ -1,4 +1,3 @@
-// Copyrigh
 namespace LoraDeviceManagerServices.LoraDeviceManagerServices
 {
     using System;
@@ -15,6 +14,7 @@ namespace LoraDeviceManagerServices.LoraDeviceManagerServices
     using System.IO;
     using Exceptions;
     using Version;
+    using Newtonsoft.Json;
 
     public class NextFCntDownFunction
     {
@@ -34,66 +34,75 @@ namespace LoraDeviceManagerServices.LoraDeviceManagerServices
 
         [Function(nameof(NextFCntDown))]
         public async Task<IActionResult> NextFCntDown(
-            [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req)
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest request)
         {
-            if (req is null) throw new ArgumentNullException(nameof(req));
+            ArgumentNullException.ThrowIfNull(request);
+
+            using var scope = logger.BeginScope("{RelativePath}: ", nameof(NextFCntDown));
+            logger.LogDebug("QueryParams: {Query}", JsonConvert.SerializeObject(request.Query));
+            using (var reader = new StreamReader(request.Body))
+            {
+                logger.LogDebug("Post body: {Body}", await reader.ReadToEndAsync());
+            }
 
             try
             {
-                VersionValidator.Validate(req);
+                VersionValidator.Validate(request);
             }
             catch (IncompatibleVersionException ex)
             {
+                logger.LogError(ex, "{ExceptionType}: {Message}", ex.GetType().Name, ex.Message);
                 return new BadRequestObjectResult(ex.Message);
             }
 
-            string rawDevEui = req.Query["DevEUI"];
-            var fCntDown = req.Query["FCntDown"];
-            var fCntUp = req.Query["FCntUp"];
-            var gatewayId = req.Query["GatewayId"];
-            var abpFcntCacheReset = req.Query["ABPFcntCacheReset"];
+            string paramDevEui = request.Query["DevEUI"];
+            var paramFCntDown = request.Query["FCntDown"];
+            var paramFCntUp = request.Query["FCntUp"];
+            var paramGatewayId = request.Query["GatewayId"];
+            var paramAbpFcntCacheReset = request.Query["ABPFcntCacheReset"];
 
-            if (!DevEui.TryParse(rawDevEui, EuiParseOptions.ForbidInvalid, out var devEui))
+            if (!DevEui.TryParse(paramDevEui, EuiParseOptions.ForbidInvalid, out var devEui))
             {
-                return new BadRequestObjectResult("Dev EUI is invalid.");
+                return new BadRequestObjectResult("DevEUI is missing or invalid.");
             }
 
-            using var deviceScope = logger.BeginDeviceScope(devEui);
+            using var deviceScope = logger.BeginDeviEuiScope(devEui);
 
-            if (!uint.TryParse(fCntUp, out var clientFCntUp))
+            if (!uint.TryParse(paramFCntUp, out var fCntUp))
             {
-                throw new ArgumentException("Missing FCntUp");
+                throw new ArgumentException("FCntUp param is missing or invalid");
             }
 
-            if (abpFcntCacheReset != StringValues.Empty)
+            if (paramAbpFcntCacheReset != StringValues.Empty)
             {
-                await loraDeviceManager.AbpFcntCacheReset(devEui, gatewayId);
+                await loraDeviceManager.AbpFcntCacheReset(devEui, paramGatewayId);
                 return new OkObjectResult(null);
             }
 
             // validate input parameters
-            if (!uint.TryParse(fCntDown, out var clientFCntDown) ||
-                StringValues.IsNullOrEmpty(gatewayId))
+            if (!uint.TryParse(paramFCntDown, out var fCntDown) ||
+                StringValues.IsNullOrEmpty(paramGatewayId))
             {
-                var errorMsg = "Missing FCntDown or GatewayId";
-                throw new ArgumentException(errorMsg);
+                return new BadRequestObjectResult("FCntDown or GatewayId params missing or invalid");
             }
 
             try
             {
-                await tenantValidationStrategy.ValidateRequestAndEui(devEui.ToString(), req);
+                await tenantValidationStrategy.ValidateRequestAndEui(devEui.ToString(), request);
             }
-            catch (InvalidDataException ide)
+            catch (InvalidDataException ex)
             {
-                return new BadRequestObjectResult(ide.Message);
+                logger.LogError(ex, "{ExceptionType}: {Message}", ex.GetType().Name, ex.Message);
+                return new BadRequestObjectResult(ex.Message);
             }
-            catch (ArgumentException)
+            catch (ArgumentException ex)
             {
+                logger.LogError(ex, "{ExceptionType}: {Message}", ex.GetType().Name, ex.Message);
                 return new NotFoundResult();
             }
 
-            var newFCntDown = await loraDeviceManager.GetNextFCntDownAsync(devEui, gatewayId, clientFCntUp, clientFCntDown);
-
+            var newFCntDown = await loraDeviceManager.GetNextFCntDownAsync(devEui, paramGatewayId, fCntUp, fCntDown);
+            logger.LogDebug("Returning new fCntDown of {NewFCntDown}", newFCntDown.ToString());
             return new OkObjectResult(newFCntDown);
         }
     }

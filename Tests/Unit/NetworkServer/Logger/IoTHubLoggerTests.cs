@@ -75,7 +75,7 @@ namespace LoRaWan.Tests.Unit.NetworkServer.Logger
             const string message = "foo";
 
             // act
-            using var scope = testableLogger.Value.Object.BeginDeviceAddressScope(devAddr);
+            using var scope = testableLogger.Value.Object.BeginDevAddrStringScope(devAddr);
             testableLogger.Value.Object.LogInformation(message);
 
             // assert
@@ -91,7 +91,7 @@ namespace LoRaWan.Tests.Unit.NetworkServer.Logger
             const string message = "foo";
 
             // act
-            using var scope = testableLogger.Value.Object.BeginDeviceAddressScope(devAddr);
+            using var scope = testableLogger.Value.Object.BeginDevAddrStringScope(devAddr);
             testableLogger.Value.Object.LogInformation(message);
 
             // assert

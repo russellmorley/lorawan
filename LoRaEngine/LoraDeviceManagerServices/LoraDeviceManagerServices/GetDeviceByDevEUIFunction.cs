@@ -4,6 +4,7 @@ namespace LoraDeviceManagerServices.LoraDeviceManagerServices
     using System;
     using System.Threading.Tasks;
     using LoRaWan;
+    using LoRaTools;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Logging;
@@ -13,6 +14,7 @@ namespace LoraDeviceManagerServices.LoraDeviceManagerServices
     using System.IO;
     using Exceptions;
     using Version;
+    using Newtonsoft.Json;
 
     public class GetDeviceByDevEUIFunction
     {
@@ -31,50 +33,61 @@ namespace LoraDeviceManagerServices.LoraDeviceManagerServices
         }
 
         [Function(nameof(GetDeviceByDevEUI))]
-        public async Task<IActionResult> GetDeviceByDevEUI([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req)
+        public async Task<IActionResult> GetDeviceByDevEUI([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest request)
         {
-            ArgumentNullException.ThrowIfNull(req);
+            ArgumentNullException.ThrowIfNull(request);
+
+            using var scope = logger.BeginScope("{RelativePath}: ", nameof(GetDeviceByDevEUI));
+            logger.LogDebug("QueryParams: {Query}", JsonConvert.SerializeObject(request.Query));
+            using (var reader = new StreamReader(request.Body))
+            {
+                logger.LogDebug("Post body: {Body}", await reader.ReadToEndAsync());
+            }
 
             try
             {
-                VersionValidator.Validate(req);
+                VersionValidator.Validate(request);
             }
             catch (IncompatibleVersionException ex)
             {
-                logger.LogError(ex, "Invalid version");
+                logger.LogError(ex, "{ExceptionType}: {Message}", ex.GetType().Name, ex.Message);
                 return new BadRequestObjectResult(ex.Message);
             }
 
-            string devEui = req.Query["DevEUI"];
-            if (!DevEui.TryParse(devEui, out var parsedDevEui))
+            string paramDevEui = request.Query["DevEUI"];
+            if (!DevEui.TryParse(paramDevEui, out var devEui))
             {
-                return new BadRequestObjectResult("DevEUI missing or invalid.");
+                return new BadRequestObjectResult("DevEUI is missing or invalid.");
             }
 
             try
             {
-                await tenantValidationStrategy.ValidateRequestAndEui(parsedDevEui.ToString(), req);
+                await tenantValidationStrategy.ValidateRequestAndEui(devEui.ToString(), request);
             }
-            catch (InvalidDataException ide)
+            catch (InvalidDataException ex)
             {
-                return new BadRequestObjectResult(ide.Message);
+                logger.LogError(ex, "{ExceptionType}: {Message}", ex.GetType().Name, ex.Message);
+                return new BadRequestObjectResult(ex.Message);
             }
-            catch (ArgumentException)
+            catch (ArgumentException ex)
             {
+                logger.LogError(ex, "{ExceptionType}: {Message}", ex.GetType().Name, ex.Message);
                 return new NotFoundResult();
             }
 
-            var primaryKey = await loraDeviceManager.GetDevicePrimaryKey(devEui);
+            using var deviceScope = logger.BeginDeviEuiScope(devEui);
+
+            var primaryKey = await loraDeviceManager.GetDevicePrimaryKey(paramDevEui);
             if (primaryKey == null)
             {
-                logger.LogInformation($"Search for {devEui} found 0 devices");
+                logger.LogDebug("Search for {ParamDevEui} found 0 devices", paramDevEui);
                 return new NotFoundResult();
             }
 
-            logger.LogDebug($"Search for {devEui} found 1 device");
+            logger.LogDebug("Search for {ParamDevEui} found 1 device. Returning its primaryKey {PrimaryKey}", paramDevEui, primaryKey);
             return new OkObjectResult(new
             {
-                DevEUI = devEui,
+                DevEUI = paramDevEui,
                 PrimaryKey = primaryKey
             });
         }

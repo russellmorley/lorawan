@@ -35,7 +35,7 @@ namespace LoRaWan.Tests.Unit.LoRaTools
         [Theory]
         [MemberData(nameof(BeginDeviceAddressScope_TheoryData))]
         public void BeginDeviceAddressScope_Success(DevAddr? devAddr, string? expectedScopeValue) =>
-            AssertBeginScope(logger => logger.BeginDeviceAddressScope(devAddr), expectedScopeValue, "DevAddr");
+            AssertBeginScope(logger => logger.BeginDevAddrScope(devAddr), expectedScopeValue, "DevAddr");
 
         public static TheoryData<DevEui?, string?> BeginDeviceScope_TheoryData() => TheoryDataFactory.From(new (DevEui?, string?)[]
         {
@@ -46,7 +46,7 @@ namespace LoRaWan.Tests.Unit.LoRaTools
         [Theory]
         [MemberData(nameof(BeginDeviceScope_TheoryData))]
         public void BeginDeviceScope_Success(DevEui? devEui, string? expectedScopeValue) =>
-            AssertBeginScope(logger => logger.BeginDeviceScope(devEui), expectedScopeValue, "DevEUI");
+            AssertBeginScope(logger => logger.BeginDeviEuiScope(devEui), expectedScopeValue, "DevEUI");
 
         private void AssertBeginScope(Func<ILogger, IDisposable> act, string? expectedScopeValue, string expectedKey)
         {
@@ -66,6 +66,6 @@ namespace LoRaWan.Tests.Unit.LoRaTools
 
         [Fact]
         public void BeginEuiScope_Success() =>
-            AssertBeginScope(logger => logger.BeginEuiScope(new StationEui(1)), "0000000000000001", "StationEUI");
+            AssertBeginScope(logger => logger.BeginStationEuiScope(new StationEui(1)), "0000000000000001", "StationEUI");
     }
 }

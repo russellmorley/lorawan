@@ -897,7 +897,7 @@ namespace LoRaWan.NetworkServer
 
             async Task CoreAsync()
             {
-                using var scope = this.logger.BeginDeviceScope(DevEUI);
+                using var scope = this.logger.BeginDeviEuiScope(DevEUI);
 
                 LoRaDeviceRequestProcessResult result = null;
 

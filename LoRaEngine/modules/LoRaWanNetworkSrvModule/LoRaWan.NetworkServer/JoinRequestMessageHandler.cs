@@ -61,7 +61,7 @@ namespace LoRaWan.NetworkServer
 
             var devEui = joinReq.DevEUI;
 
-            using var scope = this.logger.BeginDeviceScope(devEui);
+            using var scope = this.logger.BeginDeviEuiScope(devEui);
 
             LoRaDevice loRaDevice = null;
 

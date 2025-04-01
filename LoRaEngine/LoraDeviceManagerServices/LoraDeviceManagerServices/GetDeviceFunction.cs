@@ -43,63 +43,65 @@ namespace LoraDeviceManagerServices.LoraDeviceManagerServices
         /// </summary>
         [Function(nameof(GetDevice))]
         public async Task<IActionResult> GetDevice(
-            [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req)
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest request)
         {
-            ArgumentNullException.ThrowIfNull(req);
+            ArgumentNullException.ThrowIfNull(request);
+
+            using var scope = logger.BeginScope("{RelativePath}: ", nameof(GetDevice));
+            logger.LogDebug("QueryParams: {Query}", JsonConvert.SerializeObject(request.Query));
+            using (var reader = new StreamReader(request.Body))
+            {
+                logger.LogDebug("Post body: {Body}", await reader.ReadToEndAsync());
+            }
 
             try
             {
-                VersionValidator.Validate(req);
+                VersionValidator.Validate(request);
             }
             catch (IncompatibleVersionException ex)
             {
+                logger.LogError(ex, "{ExceptionType}: {Message}", ex.GetType().Name, ex.Message);
                 return new BadRequestObjectResult(ex.Message);
             }
 
             // ABP parameters
-            string devAddrString = req.Query["DevAddr"];
+            string paramDevAddr = request.Query["DevAddr"];
             // OTAA parameters
-            string rawDevEui = req.Query["DevEUI"];
-            string rawDevNonce = req.Query["DevNonce"];
-            var gatewayId = req.Query["GatewayId"];
+            string paramDevEui = request.Query["DevEUI"];
+            string paramDevNonce = request.Query["DevNonce"];
+            var paramGatewayId = request.Query["GatewayId"];
 
-            DevEui? devEui = null;
-            if (!string.IsNullOrEmpty(rawDevEui))
+            if (!DevEui.TryParse(paramDevEui, EuiParseOptions.ForbidInvalid, out var devEui))
             {
-                if (DevEui.TryParse(rawDevEui, EuiParseOptions.ForbidInvalid, out var parsedDevEui))
-                {
-                    devEui = parsedDevEui;
-                }
-                else
-                {
-                    return new BadRequestObjectResult("Dev EUI is invalid.");
-                }
+                return new BadRequestObjectResult("DevEUI is missing invalid.");
             }
 
-            using var deviceScope = logger.BeginDeviceScope(devEui);
+            using var deviceScope = logger.BeginDeviEuiScope(devEui);
 
             try
             {
-                DevNonce? devNonce = ushort.TryParse(rawDevNonce, NumberStyles.None, CultureInfo.InvariantCulture, out var d) ? new DevNonce(d) : null;
-                DevAddr? devAddr = DevAddr.TryParse(devAddrString, out var someDevAddr) ? someDevAddr : null;
+                DevNonce? devNonce = ushort.TryParse(paramDevNonce, NumberStyles.None, CultureInfo.InvariantCulture, out var d) ? new DevNonce(d) : null;
+                DevAddr? devAddr = DevAddr.TryParse(paramDevAddr, out var someDevAddr) ? someDevAddr : null;
 
-                using var devAddrScope = logger.BeginDeviceAddressScope(devAddr);
+                using var devAddrScope = logger.BeginDevAddrScope(devAddr);
 
                 string tenantId;
                 try
                 {
-                    tenantId = await tenantValidationStrategy.ValidateRequest(req);
+                    tenantId = await tenantValidationStrategy.ValidateRequest(request);
                 }
-                catch (InvalidDataException ide)
+                catch (InvalidDataException ex)
                 {
-                    return new BadRequestObjectResult(ide.Message);
+                    logger.LogError(ex, "{ExceptionType}: {Message}", ex.GetType().Name, ex.Message);
+                    return new BadRequestObjectResult(ex.Message);
                 }
-                catch (ArgumentException)
+                catch (ArgumentException ex)
                 {
+                    logger.LogError(ex, "{ExceptionType}: {Message}", ex.GetType().Name, ex.Message);
                     return new NotFoundResult();
                 }
 
-                var results = await loraDeviceManager.GetDeviceList(devEui, gatewayId, devNonce, devAddr);
+                var results = await loraDeviceManager.GetDeviceList(devEui, paramGatewayId, devNonce, devAddr);
 
                 // if using tenant, filter out any results that aren't for tenant.
                 if (tenantId != null)
@@ -119,20 +121,24 @@ namespace LoraDeviceManagerServices.LoraDeviceManagerServices
                         .ToList();
                 }
 
-                var json = JsonConvert.SerializeObject(results);
-                return new OkObjectResult(json);
+                var bodyStringToSend = JsonConvert.SerializeObject(results);
+                logger.LogDebug("Returning json-serialized IoTHubDeviceInfos: {BodyStringToSend}", bodyStringToSend);
+                return new OkObjectResult(bodyStringToSend);
             }
-            catch (DeviceNonceUsedException)
+            catch (DeviceNonceUsedException ex)
             {
+                logger.LogError(ex, "Used device Nonce: {ex}", ex.Message);
                 return new BadRequestObjectResult("UsedDevNonce");
             }
             catch (JoinRefusedException ex) when (ExceptionFilterUtility.True(() => logger.LogDebug("Join refused: {msg}", ex.Message)))
             {
+                logger.LogError(ex, "Join refused {ex}", ex.Message);
                 return new BadRequestObjectResult("JoinRefused: " + ex.Message);
             }
-            catch (ArgumentException aex)
+            catch (ArgumentException ex)
             {
-                return new BadRequestObjectResult(aex.Message);
+                logger.LogError(ex, "{ExceptionType}: {Message}", ex.GetType().Name, ex.Message);
+                return new BadRequestObjectResult(ex.Message);
             }
         }
     }

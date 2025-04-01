@@ -1,8 +1,9 @@
 #This docker builds a container for the LoRa Basics station on arm64v8 architecture
+#Build platform should be amd64
 
-# NOTE: Use either docker.io or your own registry address to build the image
-ARG CONTAINER_REGISTRY_ADDRESS=your-registry-address.azurecr.io
-FROM $CONTAINER_REGISTRY_ADDRESS/amd64/debian:bullseye as build
+FROM --platform=$BUILDPLATFORM debian:bullseye AS build
+ARG BUILDPLATFORM
+
 RUN apt-get update \
     && apt-get install -y git apt-utils build-essential gcc-aarch64-linux-gnu
 RUN git clone --branch v2.0.6 --single-branch --depth 1 https://github.com/lorabasics/basicstation.git
@@ -33,9 +34,10 @@ RUN sed -i "s|8000000|2000000|g" /basicstation/deps/lgw/platform-rpi/libloragw/s
 RUN make platform=rpi variant=std
 RUN cp ./build-rpi-std/bin/station ./built/station.spispeed2
 
-FROM $CONTAINER_REGISTRY_ADDRESS/arm64v8/debian:bullseye
+FROM balenalib/aarch64-debian:bookworm-run
+RUN install_packages gpiod vim
 WORKDIR /basicstation
-COPY --from=build /basicstation/deps/lgw/platform-rpi/reset_lgw.sh .
+# COPY --from=build /basicstation/deps/lgw/platform-rpi/reset_lgw.sh .
 COPY --from=build /basicstation/built/* .
 COPY LoRaEngine/modules/LoRaBasicsStationModule/sx1301.station.conf .
 COPY LoRaEngine/modules/LoRaBasicsStationModule/corecell.station.conf .

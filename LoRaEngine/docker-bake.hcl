@@ -25,21 +25,21 @@ target "LoraBasicsStation" {
 
 target "LoRaWanNetworkServerx64" {
     inherits = ["LoRaWanNetworkServer"]
-    dockerfile = "LoRaEngine/modules/LoRaWanNetworkSrvModule/Dockerfile.amd64"
+    dockerfile = "LoRaEngine/modules/LoRaWanNetworkSrvModule/Dockerfile"
     tags = ["${CONTAINER_REGISTRY_ADDRESS}/lorawannetworksrvmodule:${NET_SRV_VERSION}-amd64"]
     platforms = ["linux/amd64"]
 }
 
 target "LoRaWanNetworkServerarm32" {
     inherits = ["LoRaWanNetworkServer"]
-    dockerfile = "LoRaEngine/modules/LoRaWanNetworkSrvModule/Dockerfile.arm32v7"
+    dockerfile = "LoRaEngine/modules/LoRaWanNetworkSrvModule/Dockerfile"
     tags = ["${CONTAINER_REGISTRY_ADDRESS}/lorawannetworksrvmodule:${NET_SRV_VERSION}-arm32v7"]
     platforms = ["linux/arm/v7"]
 }
 
 target "LoRaWanNetworkServerarm64v8" {
     inherits = ["LoRaWanNetworkServer"]
-    dockerfile = "LoRaEngine/modules/LoRaWanNetworkSrvModule/Dockerfile.arm64v8"
+    dockerfile = "LoRaEngine/modules/LoRaWanNetworkSrvModule/Dockerfile"
     tags = ["${CONTAINER_REGISTRY_ADDRESS}/lorawannetworksrvmodule:${NET_SRV_VERSION}-arm64v8"]
     platforms = ["linux/arm64"]
 }

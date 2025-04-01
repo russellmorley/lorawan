@@ -13,6 +13,10 @@ namespace LoraDeviceManagerServices.LoraDeviceManagerServices
     using System;
     using System.IO;
     using System.Threading.Tasks;
+    using Newtonsoft.Json;
+    //using FromBodyAttribute = Microsoft.Azure.Functions.Worker.Http.FromBodyAttribute;
+    // see https://learn.microsoft.com/en-us/azure/azure-functions/functions-bindings-http-webhook-trigger?tabs=python-v2%2Cisolated-process%2Cnodejs-v4%2Cfunctionsv2&pivots=programming-language-csharp#payload
+
 
     internal class DeviceJoinNotificationFunction
     {
@@ -33,34 +37,68 @@ namespace LoraDeviceManagerServices.LoraDeviceManagerServices
         }
 
         [Function(nameof(DeviceJoinNotification))]
-        public async Task<IActionResult> DeviceJoinNotification([HttpTrigger(AuthorizationLevel.Function, "post", Route = "devicejoinnotification")] DeviceJoinNotification joinNotification,
-                                 HttpRequest req)
+        public async Task<IActionResult> DeviceJoinNotification(
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "devicejoinnotification")] HttpRequest request
+            // , [FromBody] DeviceJoinNotification joinNotification
+            // this version of stupid functions uses Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonInputFormatter, which uses JsonSerializer,
+            // which is not compatible with Newtonsoft attributes, and thus the DeviceJoinNotification class is not compatible.
+            // Rather than porting the entire app from Newtonsoft, I elected to just deserialize the object myself using Newtonsoft. 
+            // -- RM 3/23/25
+            )
         {
+            ArgumentNullException.ThrowIfNull(request);
+
+            using var scope = logger.BeginScope("{RelativePath}: ", nameof(DeviceJoinNotification));
+            logger.LogDebug("QueryParams: {Query}", JsonConvert.SerializeObject(request.Query));
+            string bodyString;
+            using (var reader = new StreamReader(request.Body))
+            {
+                bodyString = await reader.ReadToEndAsync();
+                logger.LogDebug("Post body: {BodyString}", bodyString); 
+            }
+            if (string.IsNullOrEmpty(bodyString))
+            {
+                var message = "Empty body string that should contain serialized DeviceJoinNotification";
+                logger.LogError(message);
+                return new BadRequestObjectResult(message);
+            }
+            var deviceJoinNotification = JsonConvert.DeserializeObject<DeviceJoinNotification>(bodyString);
+            if (deviceJoinNotification == null)
+            {
+                var message = "Cannot deserialize body into a DeviceJoinNotification";
+                logger.LogError(message);
+                return new BadRequestObjectResult(message);
+            }
+
+            using var deviceScope = logger.BeginDeviEuiScope(deviceJoinNotification.DevEUI);
+
             try
             {
-                VersionValidator.Validate(req);
+                VersionValidator.Validate(request);
             }
             catch (IncompatibleVersionException ex)
             {
+                logger.LogError(ex, "{ExceptionType}: {Message}", ex.GetType().Name, ex.Message);
                 return new BadRequestObjectResult(ex.Message);
             }
 
             try
             {
-                await tenantValidationStrategy.ValidateRequestAndEui(joinNotification.DevEUI.ToString(), req);
+                await tenantValidationStrategy.ValidateRequestAndEui(deviceJoinNotification.DevEUI.ToString(), request);
             }
-            catch (InvalidDataException ide)
+            catch (InvalidDataException ex)
             {
-                return new BadRequestObjectResult(ide.Message);
+                logger.LogError(ex, "{ExceptionType}: {Message}", ex.GetType().Name, ex.Message);
+                return new BadRequestObjectResult(ex.Message);
             }
-            catch (ArgumentException)
+            catch (ArgumentException ex)
             {
+                logger.LogError(ex, "{ExceptionType}: {Message}", ex.GetType().Name, ex.Message);
                 return new NotFoundResult();
             }
 
-            using var deviceScope = logger.BeginDeviceScope(joinNotification.DevEUI);
-
-            loraDeviceManager.AddDevice(joinNotification.DevAddr, joinNotification.DevEUI, joinNotification.GatewayId, joinNotification.NwkSKeyString);
+            loraDeviceManager.AddDevice(deviceJoinNotification.DevAddr, deviceJoinNotification.DevEUI, deviceJoinNotification.GatewayId, deviceJoinNotification.NwkSKeyString);
+            logger.LogDebug("Returning OkResult");
             return new OkResult();
         }
     }

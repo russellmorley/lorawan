@@ -53,9 +53,12 @@ namespace LoRaWan.NetworkServer.Services
 
         public override async Task<uint> NextFCntDownAsync(DevEui devEUI, uint fcntDown, uint fcntUp, string gatewayId)
         {
-            logger.LogDebug("syncing FCntDown for multigateway");
+            var relativePath = "NextFCntDown";
 
+            using var scope = logger.BeginScope("{RelativePath}: ", relativePath);
+ 
             using var client = CreateClient();
+ 
             var queryParameters = new Dictionary<string, string>()
             {
                 ["code"] = AuthCode,
@@ -66,18 +69,20 @@ namespace LoRaWan.NetworkServer.Services
             };
             queryParameters = tenantValidationStrategy.AddQueryParameters(queryParameters, CallingGatewayId, TenantId, TenantKey, DateTime.Now.AddMinutes(10));
 
-            var url = BuildUri("NextFCntDown", queryParameters);
+            var url = BuildUri(relativePath, queryParameters);
+            logger.LogDebug("QueryParams: {Query}", JsonConvert.SerializeObject(url.Query));
 
             var response = await client.GetAsync(url);
             if (!response.IsSuccessStatusCode)
             {
-                logger.LogError($"error calling the NextFCntDown function, check the function log. {response.ReasonPhrase}");
+                logger.LogError("Error calling {RelativePath}. StatusCode {StatusCode}, Reason: {ReasonPhrase}", relativePath, response.StatusCode, response.ReasonPhrase);
                 return 0;
             }
 
-            var fcntDownString = await response.Content.ReadAsStringAsync();
+            var receivedBodyString = await response.Content.ReadAsStringAsync();
+            logger.LogDebug("Body string received: {BodyString}", receivedBodyString);
 
-            if (ushort.TryParse(fcntDownString, out var newFCntDown))
+            if (ushort.TryParse(receivedBodyString, out var newFCntDown))
                 return newFCntDown;
 
             return 0;
@@ -85,6 +90,10 @@ namespace LoRaWan.NetworkServer.Services
 
         public override async Task<FunctionBundlerResult> ExecuteFunctionBundlerAsync(DevEui devEUI, FunctionBundlerRequest request)
         {
+            var relativePath = $"FunctionBundler/{devEUI}";
+
+            using var scope = logger.BeginScope("{RelativePath}: ", relativePath);
+
             using var client = CreateClient();
 
             var queryParameters = new Dictionary<string, string>()
@@ -93,24 +102,32 @@ namespace LoRaWan.NetworkServer.Services
             };
             queryParameters = tenantValidationStrategy.AddQueryParameters(queryParameters, CallingGatewayId, TenantId, TenantKey, DateTime.Now.AddMinutes(10));
 
-            var url = BuildUri($"FunctionBundler/{devEUI}", queryParameters);
+            var url = BuildUri(relativePath, queryParameters);
+            logger.LogDebug("QueryParams: {Query}", JsonConvert.SerializeObject(url.Query));
 
-            var requestBody = JsonConvert.SerializeObject(request);
+            var sendBodyString = JsonConvert.SerializeObject(request);
+            logger.LogDebug("Body string to send: {BodyString}", sendBodyString);
 
-            using var content = PreparePostContent(requestBody);
+            using var content = PreparePostContent(sendBodyString);
             using var response = await client.PostAsync(url, content);
             if (!response.IsSuccessStatusCode)
             {
-                logger.LogError($"error calling the bundling function, check the function log. {response.ReasonPhrase}");
+                logger.LogError("Error calling {RelativePath}. StatusCode {StatusCode}, Reason: {ReasonPhrase}", relativePath, response.StatusCode, response.ReasonPhrase);
                 return null;
             }
 
-            var payload = await response.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<FunctionBundlerResult>(payload);
+            var receivedBodyString = await response.Content.ReadAsStringAsync();
+            logger.LogDebug("Body string received: {BodyString}", receivedBodyString);
+
+            return JsonConvert.DeserializeObject<FunctionBundlerResult>(receivedBodyString);
         }
 
         public override async Task<bool> ABPFcntCacheResetAsync(DevEui devEUI, uint fcntUp, string gatewayId)
         {
+            var relativePath = "NextFCntDown";
+
+            using var scope = logger.BeginScope("{RelativePath}: ", relativePath);
+
             using var client = CreateClient();
             var queryParameters = new Dictionary<string, string>()
             {
@@ -121,16 +138,17 @@ namespace LoRaWan.NetworkServer.Services
                 ["GatewayId"] = gatewayId,
             };
             queryParameters = tenantValidationStrategy.AddQueryParameters(queryParameters, CallingGatewayId, TenantId, TenantKey, DateTime.Now.AddMinutes(10));
-
-            var url = BuildUri("NextFCntDown", queryParameters);
+            
+            var url = BuildUri(relativePath, queryParameters);
+            logger.LogDebug("QueryParams: {Query}", JsonConvert.SerializeObject(url.Query));
 
             var response = await client.GetAsync(url);
             if (!response.IsSuccessStatusCode)
             {
-                logger.LogError($"error calling the NextFCntDown function, check the function log, {response.ReasonPhrase}");
+                logger.LogError("Error calling {RelativePath}. StatusCode {StatusCode}, Reason: {ReasonPhrase}", relativePath, response.StatusCode, response.ReasonPhrase);
                 return false;
             }
-
+            logger.LogDebug("Received success status code");
             return true;
         }
 
@@ -147,6 +165,10 @@ namespace LoRaWan.NetworkServer.Services
         /// </summary>
         private async Task<SearchDevicesResult> SearchDevicesAsync(string gatewayID = null, DevAddr? devAddr = null, DevEui? devEui = null, string appEUI = null, DevNonce? devNonce = null)
         {
+            var relativePath = "GetDevice";
+
+            using var scope = logger.BeginScope("{RelativePath}: ", relativePath);
+
             deviceLoadRequests?.Add(1);
 
             using var client = CreateClient();
@@ -163,16 +185,21 @@ namespace LoRaWan.NetworkServer.Services
             };
             queryParameters = tenantValidationStrategy.AddQueryParameters(queryParameters, CallingGatewayId, TenantId, TenantKey, DateTime.Now.AddMinutes(10));
 
-            var url = BuildUri("GetDevice", queryParameters);
+
+            var url = BuildUri(relativePath, queryParameters);
+            logger.LogDebug("QueryParams: {Query}", JsonConvert.SerializeObject(url.Query));
 
             var response = await client.GetAsync(url);
             if (!response.IsSuccessStatusCode)
             {
+                logger.LogError("Error calling {RelativePath}. StatusCode {StatusCode}, Reason: {ReasonPhrase}", relativePath, response.StatusCode, response.ReasonPhrase);
+
                 if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
                 {
-                    var badReqResult = await response.Content.ReadAsStringAsync();
+                    var receivedBodyStringBadRequest = await response.Content.ReadAsStringAsync();
+                    logger.LogDebug("Status code BadRequest body string received: {BodyString}", receivedBodyStringBadRequest);
 
-                    if (string.Equals(badReqResult, "UsedDevNonce", StringComparison.OrdinalIgnoreCase))
+                    if (string.Equals(receivedBodyStringBadRequest, "UsedDevNonce", StringComparison.OrdinalIgnoreCase))
                     {
                         return new SearchDevicesResult
                         {
@@ -180,23 +207,22 @@ namespace LoRaWan.NetworkServer.Services
                         };
                     }
 
-                    if (badReqResult != null && badReqResult.StartsWith("JoinRefused", StringComparison.OrdinalIgnoreCase))
+                    if (receivedBodyStringBadRequest != null && receivedBodyStringBadRequest.StartsWith("JoinRefused", StringComparison.OrdinalIgnoreCase))
                     {
                         return new SearchDevicesResult()
                         {
-                            RefusedMessage = badReqResult
+                            RefusedMessage = receivedBodyStringBadRequest
                         };
                     }
                 }
-
-                logger.LogError($"{devAddr} error calling get device function api: {response.ReasonPhrase}, status: {response.StatusCode}, check the azure function log");
 
                 // TODO: FBE check if we return null or throw exception
                 return new SearchDevicesResult();
             }
 
-            var result = await response.Content.ReadAsStringAsync();
-            var devices = (List<IoTHubDeviceServiceInfo>)JsonConvert.DeserializeObject(result, typeof(List<IoTHubDeviceServiceInfo>));
+            var receivedBodyString = await response.Content.ReadAsStringAsync();
+            logger.LogDebug("Body string received: {BodyString}", receivedBodyString);
+            var devices = (List<IoTHubDeviceServiceInfo>)JsonConvert.DeserializeObject(receivedBodyString, typeof(List<IoTHubDeviceServiceInfo>));
             return new SearchDevicesResult(devices);
         }
 
@@ -210,6 +236,10 @@ namespace LoRaWan.NetworkServer.Services
 
         private async Task<string> GetPrimaryKeyByEuiAsync(string eui)
         {
+            var relativePath = "GetDeviceByDevEUI";
+
+            using var scope = logger.BeginScope("{RelativePath}: ", relativePath);
+
             deviceLoadRequests?.Add(1);
 
             using var client = CreateClient();
@@ -220,21 +250,26 @@ namespace LoRaWan.NetworkServer.Services
             };
             queryParameters = tenantValidationStrategy.AddQueryParameters(queryParameters, CallingGatewayId, TenantId, TenantKey, DateTime.Now.AddMinutes(10));
 
-            var url = BuildUri("GetDeviceByDevEUI", queryParameters);
+            var url = BuildUri(relativePath, queryParameters);
+            logger.LogDebug("QueryParams: {Query}", JsonConvert.SerializeObject(url.Query));
+
             var response = await client.GetAsync(url);
             if (!response.IsSuccessStatusCode)
             {
                 if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
+                    logger.LogDebug("Calling {RelativePath} resulted in StatusCode {StatusCode}, Reason: {ReasonPhrase}", relativePath, response.StatusCode, response.ReasonPhrase);
                     return default;
                 }
 
-                logger.LogError($"error calling get device/station by EUI api: {response.ReasonPhrase}, status: {response.StatusCode}, check the azure function log");
-
+                logger.LogError("Error calling {RelativePath}. StatusCode {StatusCode}, Reason: {ReasonPhrase}", relativePath, response.StatusCode, response.ReasonPhrase);
                 return default;
             }
 
-            return await response.Content.ReadAsStringAsync() is { Length: > 0 } json
+            var receivedBodyString = await response.Content.ReadAsStringAsync();
+            logger.LogDebug("Body string received: {BodyString}", receivedBodyString);
+
+            return receivedBodyString is { Length: > 0 } json
                    && JsonDocument.Parse(json).RootElement is { ValueKind: JsonValueKind.Object } root
                    && root.EnumerateObject()
                           .FirstOrDefault(p => PrimaryKeyPropertyName.Equals(p.Name, StringComparison.OrdinalIgnoreCase)) is { Value.ValueKind: JsonValueKind.String } property
@@ -244,6 +279,10 @@ namespace LoRaWan.NetworkServer.Services
 
         public override async Task<string> FetchStationCredentialsAsync(StationEui eui, ConcentratorCredentialType credentialtype, CancellationToken token)
         {
+            var relativePath = "FetchConcentratorCredentials";
+
+            using var scope = logger.BeginScope("{RelativePath}: ", relativePath);
+
             using var client = CreateClient();
             var queryParameters = new Dictionary<string, string>()
             {
@@ -253,24 +292,32 @@ namespace LoRaWan.NetworkServer.Services
             };
             queryParameters = tenantValidationStrategy.AddQueryParameters(queryParameters, CallingGatewayId, TenantId, TenantKey, DateTime.Now.AddMinutes(10));
 
-            var url = BuildUri("FetchConcentratorCredentials", queryParameters);
+            var url = BuildUri(relativePath, queryParameters);
+            logger.LogDebug("QueryParams: {Query}", JsonConvert.SerializeObject(url.Query));
 
             var response = await client.GetAsync(url, token);
             if (!response.IsSuccessStatusCode)
             {
                 if (response.StatusCode is not System.Net.HttpStatusCode.NotFound)
                 {
-                    logger.LogError($"error calling fetch station credentials api: {response.ReasonPhrase}, status: {response.StatusCode}, content: {response.Content}, check the azure function log");
+                    logger.LogError("Error calling {RelativePath}. StatusCode {StatusCode}, Reason: {ReasonPhrase}", relativePath, response.StatusCode, response.ReasonPhrase);
                 }
-
+                logger.LogDebug("Calling {RelativePath} resulted in StatusCode {StatusCode}, Reason: {ReasonPhrase}", relativePath, response.StatusCode, response.ReasonPhrase);
                 return string.Empty;
             }
 
-            return await response.Content.ReadAsStringAsync(token);
+            var receivedBodyString = await response.Content.ReadAsStringAsync(token);
+            logger.LogDebug("Body string received: {BodyString}", receivedBodyString);
+
+            return receivedBodyString;
         }
 
         public override async Task<HttpContent> FetchStationFirmwareAsync(StationEui eui, CancellationToken token)
         {
+            var relativePath = "FetchConcentratorFirmware";
+
+            using var scope = logger.BeginScope("{RelativePath}: ", relativePath);
+
             using var client = CreateClient();
             var queryParameters = new Dictionary<string, string>()
             {
@@ -279,36 +326,45 @@ namespace LoRaWan.NetworkServer.Services
             };
             queryParameters = tenantValidationStrategy.AddQueryParameters(queryParameters, CallingGatewayId, TenantId, TenantKey, DateTime.Now.AddMinutes(10));
 
-            var url = BuildUri("FetchConcentratorFirmware", queryParameters);
+            var url = BuildUri(relativePath, queryParameters);
+            logger.LogDebug("QueryParams: {Query}", JsonConvert.SerializeObject(url.Query));
 
             var response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, token);
             if (!response.IsSuccessStatusCode)
             {
-                throw new InvalidOperationException($"error calling fetch station firmware api: {response.ReasonPhrase}, status: {response.StatusCode}, content {response.Content}, check the azure function log");
+                logger.LogError("Error calling {RelativePath}. StatusCode {StatusCode}, Reason: {ReasonPhrase}", relativePath, response.StatusCode, response.ReasonPhrase);
+                throw new InvalidOperationException(string.Format("Error calling {0}. StatusCode {1}, Reason: {2}", relativePath, response.StatusCode,response.ReasonPhrase));
             }
 
+            logger.LogDebug("Binary body content received");
             return response.Content;
         }
 
         public override async Task SendJoinNotificationAsync(DeviceJoinNotification deviceJoinNotification, CancellationToken token)
         {
+            var relativePath = "DeviceJoinNotification";
+
+            using var scope = logger.BeginScope("{RelativePath}: ", relativePath);
+
             using var client = CreateClient();
-            const string FunctionName = "DeviceJoinNotification";
+
             var queryParameters = new Dictionary<string, string>
             {
                 ["code"] = AuthCode
             };
             queryParameters = tenantValidationStrategy.AddQueryParameters(queryParameters, CallingGatewayId, TenantId, TenantKey, DateTime.Now.AddMinutes(10));
 
-            var url = BuildUri(FunctionName, queryParameters);
+            var url = BuildUri(relativePath, queryParameters);
+            logger.LogDebug("QueryParams: {Query}", JsonConvert.SerializeObject(url.Query));
 
-            var requestBody = JsonConvert.SerializeObject(deviceJoinNotification);
+            var sendBodyString = JsonConvert.SerializeObject(deviceJoinNotification);
+            logger.LogDebug("Body string to send: {BodyString}", sendBodyString);
 
-            using var content = PreparePostContent(requestBody);
+            using var content = PreparePostContent(sendBodyString);
             using var response = await client.PostAsync(url, content, token);
             if (!response.IsSuccessStatusCode)
             {
-                logger.LogError($"error calling the {FunctionName} function, check the function log. {response.ReasonPhrase}");
+                logger.LogError("Error calling {RelativePath}. StatusCode {StatusCode}, Reason: {ReasonPhrase}", relativePath, response.StatusCode, response.ReasonPhrase);
             }
         }
 
