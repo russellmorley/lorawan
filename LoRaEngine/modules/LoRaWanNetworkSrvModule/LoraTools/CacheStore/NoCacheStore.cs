@@ -42,7 +42,7 @@ namespace LoRaTools.CacheStore
             throw new NotImplementedException();
         }
 
-        public bool LockRelease(string key, string value)
+        public bool LockRelease(string key, string owner)
         {
             throw new NotImplementedException();
         }

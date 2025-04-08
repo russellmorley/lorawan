@@ -57,7 +57,9 @@ namespace LoraDeviceManagerServices.LoraDeviceManagerServices
             string paramDevEui = request.Query["DevEUI"];
             if (!DevEui.TryParse(paramDevEui, out var devEui))
             {
-                return new BadRequestObjectResult("DevEUI is missing or invalid.");
+                var message = "DevEUI is missing or invalid.";
+                logger.LogError(message);
+                return new BadRequestObjectResult(message);
             }
 
             try

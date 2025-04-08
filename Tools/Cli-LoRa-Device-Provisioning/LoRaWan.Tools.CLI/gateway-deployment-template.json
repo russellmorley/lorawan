@@ -55,7 +55,7 @@
                 "value": "true"
               },
               "LOG_LEVEL": {
-                "value": "2"
+                "value": "1"
               }
               ["$local_redis_connection_string"]
             },

@@ -38,7 +38,7 @@ namespace LoRaTools.Services
         /// <summary>
         /// Search and locks device for join request.
         /// </summary>
-        public abstract Task<SearchDevicesResult> SearchAndLockForJoinAsync(string gatewayID, DevEui devEUI, DevNonce devNonce);
+        public abstract Task<SearchDevicesResult> SearchAndLockForJoinAsync(string gatewayId, DevEui devEui, DevNonce devNonce);
 
         /// <summary>
         /// Searches the primary key for a station device in IoT Hub.
@@ -71,6 +71,6 @@ namespace LoRaTools.Services
 
         public abstract Task SendJoinNotificationAsync(DeviceJoinNotification deviceJoinNotification, CancellationToken token);
 
-        public abstract Task<FunctionBundlerResult> ExecuteFunctionBundlerAsync(DevEui devEUI, FunctionBundlerRequest request);
+        public abstract Task<FunctionBundlerResult> ExecuteFunctionBundlerAsync(DevEui devEUI, FunctionBundlerRequest functionBundlerRequest);
     }
 }

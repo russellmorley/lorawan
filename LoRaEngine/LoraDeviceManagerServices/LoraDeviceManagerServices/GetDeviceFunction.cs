@@ -19,6 +19,8 @@ namespace LoraDeviceManagerServices.LoraDeviceManagerServices
     using LoraDeviceManager.Exceptions;
     using Exceptions;
     using Version;
+    using System.Collections.Generic;
+
     public class GetDeviceFunction
     {
         private readonly ILogger<GetDeviceFunction> logger;
@@ -65,25 +67,17 @@ namespace LoraDeviceManagerServices.LoraDeviceManagerServices
             }
 
             // ABP parameters
-            string paramDevAddr = request.Query["DevAddr"];
+            string paramDevAddr = request.Query["DevAddr"].ToString(); //this will return "" if it doesn't exist, whereas without it it will return null if it doesn't exist (wtf MS!)
             // OTAA parameters
-            string paramDevEui = request.Query["DevEUI"];
-            string paramDevNonce = request.Query["DevNonce"];
-            var paramGatewayId = request.Query["GatewayId"];
-
-            if (!DevEui.TryParse(paramDevEui, EuiParseOptions.ForbidInvalid, out var devEui))
-            {
-                return new BadRequestObjectResult("DevEUI is missing invalid.");
-            }
-
-            using var deviceScope = logger.BeginDeviEuiScope(devEui);
+            string paramDevEui = request.Query["DevEUI"].ToString();
+            string paramDevNonce = request.Query["DevNonce"].ToString();
+            string paramGatewayId = request.Query["GatewayId"].ToString();
 
             try
             {
+                DevEui? devEui = DevEui.TryParse(paramDevEui, out var someDevEui) ? someDevEui : null;
                 DevNonce? devNonce = ushort.TryParse(paramDevNonce, NumberStyles.None, CultureInfo.InvariantCulture, out var d) ? new DevNonce(d) : null;
                 DevAddr? devAddr = DevAddr.TryParse(paramDevAddr, out var someDevAddr) ? someDevAddr : null;
-
-                using var devAddrScope = logger.BeginDevAddrScope(devAddr);
 
                 string tenantId;
                 try
@@ -101,13 +95,36 @@ namespace LoraDeviceManagerServices.LoraDeviceManagerServices
                     return new NotFoundResult();
                 }
 
-                var results = await loraDeviceManager.GetDeviceList(devEui, paramGatewayId, devNonce, devAddr);
+                List<IoTHubDeviceInfo> iotHubDeviceInfos = null;
+                if (devEui != null)
+                {
+                    using var devAddrScope = logger.BeginDeviEuiScope(devEui);
+                    if (devNonce == null)
+                    {
+                        var message = "DevNonce must be set to a valid value if DevEUI is set.";
+                        logger.LogError(message);
+                        return new BadRequestObjectResult(message);
+                    }
+                    iotHubDeviceInfos = await loraDeviceManager.GetDeviceList((DevEui) devEui, paramGatewayId, (DevNonce) devNonce);
+
+                }
+                else if (devAddr != null)
+                {
+                    using var devAddrScope = logger.BeginDevAddrScope(devAddr);
+                    iotHubDeviceInfos = await loraDeviceManager.GetDeviceList((DevAddr) devAddr);
+                }
+                else
+                {
+                    var message = "Either a valid DevEui or DevAddr must be included and both are missing or invalid.";
+                    logger.LogError(message);
+                    return new BadRequestObjectResult(message);
+                }
 
                 // if using tenant, filter out any results that aren't for tenant.
                 if (tenantId != null)
                 {
                     //get twin for all the results
-                    var deviceTwinTasksAndInfo = results
+                    var deviceTwinTasksAndInfo = iotHubDeviceInfos
                         .Select(async r =>
                             (await deviceRegistryManager.GetTwinAsync(r.DevEuiString), r)
                         );
@@ -115,13 +132,13 @@ namespace LoraDeviceManagerServices.LoraDeviceManagerServices
                     (IDeviceTwin twin, IoTHubDeviceInfo info)[] twinInfos = await Task.WhenAll(deviceTwinTasksAndInfo);
 
                     // only return results where twin tags tenant id matches tenant id.
-                    results = twinInfos
+                    iotHubDeviceInfos = twinInfos
                         .Where(ti => ti.twin.GetTag(TwinPropertiesConstants.TenantIdName) == tenantId)
                         .Select(ti => ti.info)
                         .ToList();
                 }
 
-                var bodyStringToSend = JsonConvert.SerializeObject(results);
+                var bodyStringToSend = JsonConvert.SerializeObject(iotHubDeviceInfos);
                 logger.LogDebug("Returning json-serialized IoTHubDeviceInfos: {BodyStringToSend}", bodyStringToSend);
                 return new OkObjectResult(bodyStringToSend);
             }

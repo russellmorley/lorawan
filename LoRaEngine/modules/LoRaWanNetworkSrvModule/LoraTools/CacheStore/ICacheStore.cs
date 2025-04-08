@@ -36,7 +36,7 @@ namespace LoRaTools.CacheStore
 
         bool KeyExists(string key);
 
-        bool LockRelease(string key, string value);
+        bool LockRelease(string key, string owner);
 
         long ListAdd(string key, string value, TimeSpan? expiration = null);
 

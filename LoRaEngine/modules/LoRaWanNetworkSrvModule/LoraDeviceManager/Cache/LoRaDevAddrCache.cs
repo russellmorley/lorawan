@@ -102,17 +102,17 @@ namespace LoraDeviceManager.Cache
             logger.LogInformation($"Successfully saved dev address info on dictionary key: {cacheKeyToUse}, hashkey: {info.DevEUI}, object: {serializedObjectValue}");
         }
 
-        public async Task PerformNeededSyncs(IDeviceRegistryManager deviceRegistryManager, string gatewayId)
+        public async Task PerformNeededSyncs(IDeviceRegistryManager deviceRegistryManager, string owner)
         {
             // If a full update is expected
-            if (await cacheStore.LockTakeAsync(FullUpdateLockKey, gatewayId, FullUpdateKeyTimeSpan, block: false))
+            if (await cacheStore.LockTakeAsync(FullUpdateLockKey, owner, FullUpdateKeyTimeSpan, block: false))
             {
                 var ownsUpdateLock = false;
                 var fullUpdatePerformed = false;
                 try
                 {
                     // if a full update is needed we take the global lock and perform a full reload
-                    if (ownsUpdateLock = await cacheStore.LockTakeAsync(UpdatingDevAddrCacheLock, gatewayId, UpdatingDevAddrCacheLockTimeSpan, block: true))
+                    if (ownsUpdateLock = await cacheStore.LockTakeAsync(UpdatingDevAddrCacheLock, owner, UpdatingDevAddrCacheLockTimeSpan, block: true))
                     {
                         logger.LogDebug("A full reload was started");
                         await PerformFullReload(deviceRegistryManager);
@@ -139,7 +139,7 @@ namespace LoraDeviceManager.Cache
                         // we would be doing an incremental update to soon. We could delay that
                         // for the time we run the incremental updates, but that could delay it
                         // longer than what we may want.
-                        _ = cacheStore.LockRelease(UpdatingDevAddrCacheLock, gatewayId);
+                        _ = cacheStore.LockRelease(UpdatingDevAddrCacheLock, owner);
                     }
 
                     if (!fullUpdatePerformed)
@@ -151,7 +151,7 @@ namespace LoraDeviceManager.Cache
                     }
                 }
             }
-            else if (await cacheStore.LockTakeAsync(UpdatingDevAddrCacheLock, gatewayId, TimeSpan.FromMinutes(5), block: false))
+            else if (await cacheStore.LockTakeAsync(UpdatingDevAddrCacheLock, owner, TimeSpan.FromMinutes(5), block: false))
             {
                 try
                 {
@@ -173,7 +173,7 @@ namespace LoraDeviceManager.Cache
                 }
                 finally
                 {
-                    _ = cacheStore.LockRelease(UpdatingDevAddrCacheLock, gatewayId);
+                    _ = cacheStore.LockRelease(UpdatingDevAddrCacheLock, owner);
                 }
             }
         }
@@ -364,14 +364,14 @@ namespace LoraDeviceManager.Cache
         /// Method to take a lock when querying IoT Hub for a primary key.
         /// It is blocking as only one should access it.
         /// </summary>
-        public async Task<bool> TryTakeDevAddrUpdateLock(DevAddr devAddr, string gatewayId)
+        public async Task<bool> TryTakeDevAddrUpdateLock(DevAddr devAddr, string owner)
         {
-            return await cacheStore.LockTakeAsync(string.Concat(DevAddrLockName, devAddr), gatewayId, DefaultSingleLockExpiry, block: true);
+            return await cacheStore.LockTakeAsync(string.Concat(DevAddrLockName, devAddr), owner, DefaultSingleLockExpiry, block: true);
         }
 
-        public bool ReleaseDevAddrUpdateLock(DevAddr devAddr, string gatewayId)
+        public bool ReleaseDevAddrUpdateLock(DevAddr devAddr, string owner)
         {
-            return cacheStore.LockRelease(string.Concat(DevAddrLockName, devAddr), gatewayId);
+            return cacheStore.LockRelease(string.Concat(DevAddrLockName, devAddr), owner);
         }
     }
 }

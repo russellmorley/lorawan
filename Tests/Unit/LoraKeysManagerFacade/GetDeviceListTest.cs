@@ -27,7 +27,7 @@ namespace LoRaWan.Tests.Unit.LoraDeviceManagerServices
             var gatewayId = NewUniqueEUI64();
             var cacheStore = new LoRaInMemoryDeviceStore();
             var loraDeviceManager = new LoraDeviceManagerImpl(InitRegistryManager(devEui), cacheStore, null, null, null,NullLogger<LoraDeviceManagerImpl>.Instance, new FrameCounter(cacheStore));
-            var items = await loraDeviceManager.GetDeviceList(devEui, gatewayId, new DevNonce(0xABCD), null);
+            var items = await loraDeviceManager.GetDeviceList(devEui, gatewayId, new DevNonce(0xABCD));
 
             Assert.Single(items);
             Assert.Equal(devEui, items[0].DevEUI);

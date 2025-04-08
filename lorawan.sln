@@ -42,6 +42,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoraDeviceManagerServices",
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NetworkServerModuleBuild", "NetworkServerModuleBuild", "{20E752D2-951B-4046-A727-B78E358DE967}"
 	ProjectSection(SolutionItems) = preProject
+		LoRaEngine\modules\LoRaWanNetworkSrvModule\appsettings.json = LoRaEngine\modules\LoRaWanNetworkSrvModule\appsettings.json
 		LoRaEngine\modules\LoRaWanNetworkSrvModule\Dockerfile = LoRaEngine\modules\LoRaWanNetworkSrvModule\Dockerfile
 		LoRaEngine\modules\LoRaWanNetworkSrvModule\start.sh = LoRaEngine\modules\LoRaWanNetworkSrvModule\start.sh
 	EndProjectSection

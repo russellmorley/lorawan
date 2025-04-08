@@ -27,9 +27,9 @@ app.get('/api/:decodername',
 
         const output = decoder.decode(req.params.decodername, req.query.payload, req.query.fport);
 
-        res.send({
+        res.send(JSON.stringify({
             value: output.data,
-        });
+        }));
     });
 
 // Error handling

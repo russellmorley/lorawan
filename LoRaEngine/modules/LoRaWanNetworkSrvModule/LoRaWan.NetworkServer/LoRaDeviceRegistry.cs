@@ -202,8 +202,8 @@ namespace LoRaWan.NetworkServer
             this.logger.LogDebug("querying the registry for OTAA device");
 
             var searchDeviceResult = await this.loRaDeviceAPIService.SearchAndLockForJoinAsync(
-                gatewayID: this.configuration.GatewayID,
-                devEUI: devEUI,
+                gatewayId: this.configuration.GatewayID,
+                devEui: devEUI,
                 devNonce: devNonce);
 
             if (searchDeviceResult.IsDevNonceAlreadyUsed)

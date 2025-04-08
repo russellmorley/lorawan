@@ -204,7 +204,7 @@ namespace LoRaWan.Tests.Integration
             await LockDevAddrHelper.PrepareLocksForTests(this.cache, lockToTake);
 
             var loraDeviceManager = SetupLoraDeviceManager(registryManagerMock.Object, this.cache);
-            items = await loraDeviceManager.GetDeviceList(null, gatewayId, new DevNonce(0xABCD), devAddrJoining);
+            items = await loraDeviceManager.GetDeviceList(/*null, gatewayId, new DevNonce(0xABCD), */devAddrJoining); //RM 4/8/25 OTAA join not by devaddr, ABP doesn't use devnonce nor gateway
 
             Assert.Single(items);
             // If a cache miss it should save it in the redisCache
@@ -255,7 +255,7 @@ namespace LoRaWan.Tests.Integration
                 from gw in new[] { gateway1, gateway2 }
                 select Enumerable.Repeat(gw, 2) into gws // repeat each gateway twice
                 from gw in gws
-                select loraDeviceManager.GetDeviceList(null, gw, new DevNonce(0xABCD), devAddrJoining);
+                select loraDeviceManager.GetDeviceList(/*null, gw, new DevNonce(0xABCD), */devAddrJoining); //RM 4/8/25 OTAA join not by devaddr, ABP doesn't use devnonce nor gateway
 
             await Task.WhenAll(tasks);
 
@@ -303,7 +303,7 @@ namespace LoRaWan.Tests.Integration
             await LockDevAddrHelper.PrepareLocksForTests(this.cache, lockToTake);
 
             var loraDeviceManager = SetupLoraDeviceManager(registryManagerMock.Object, this.cache);
-            items = await loraDeviceManager.GetDeviceList(null, gatewayId, new DevNonce(0xABCD), devAddrJoining);
+            items = await loraDeviceManager.GetDeviceList(/*null, gatewayId, new DevNonce(0xABCD), */devAddrJoining); //RM 4/8/25 OTAA join not by devaddr, ABP doesn't use devnonce nor gateway
 
             Assert.Single(items);
             var queryResult = this.cache.GetHashObject(string.Concat(CacheKeyPrefix, devAddrJoining));
@@ -351,7 +351,7 @@ namespace LoRaWan.Tests.Integration
 
             var tasks =
                 from gw in Enumerable.Repeat(gatewayId, 3)
-                select loraDeviceManager.GetDeviceList(null, gw, new DevNonce(0xABCD), devAddrJoining);
+                select loraDeviceManager.GetDeviceList(/*null, gw, new DevNonce(0xABCD), */devAddrJoining); //RM 4/8/25 OTAA join not by devaddr, ABP doesn't use devnonce nor gateway
 
             await Task.WhenAll(tasks);
             // Iot hub should never have been called.
@@ -398,7 +398,7 @@ namespace LoRaWan.Tests.Integration
             await LockDevAddrHelper.PrepareLocksForTests(this.cache, lockToTake);
 
             var loraDeviceManager = SetupLoraDeviceManager(registryManagerMock.Object, this.cache);
-            items = await loraDeviceManager.GetDeviceList(null, gatewayId, new DevNonce(0xABCD), devAddrJoining);
+            items = await loraDeviceManager.GetDeviceList(/*null, gatewayId, new DevNonce(0xABCD), */devAddrJoining); //RM 4/8/25 OTAA join not by devaddr, ABP doesn't use devnonce nor gateway
 
             Assert.Single(items);
             // Iot hub should never have been called.
@@ -440,7 +440,7 @@ namespace LoRaWan.Tests.Integration
             var registryManagerMock = InitRegistryManager(managerInput);
 
             var loraDeviceManager = SetupLoraDeviceManager(registryManagerMock.Object, this.cache);
-            items = await loraDeviceManager.GetDeviceList(null, gatewayId, new DevNonce(0xABCD), devAddrJoining);
+            items = await loraDeviceManager.GetDeviceList(/*null, gatewayId, new DevNonce(0xABCD), */devAddrJoining); //RM 4/8/25 OTAA join not by devaddr, ABP doesn't use devnonce nor gateway
 
             Assert.Empty(items);
             var queryResult = this.cache.GetHashObject(string.Concat(CacheKeyPrefix, devAddrJoining));
@@ -488,7 +488,7 @@ namespace LoRaWan.Tests.Integration
             var items = new List<IoTHubDeviceInfo>();
 
             var loraDeviceManager = SetupLoraDeviceManager(registryManagerMock.Object, this.cache);
-            items = await loraDeviceManager.GetDeviceList(null, gatewayId, new DevNonce(0xABCD), devAddrJoining);
+            items = await loraDeviceManager.GetDeviceList(/*null, gatewayId, new DevNonce(0xABCD), */devAddrJoining); //RM 4/8/25 OTAA join not by devaddr, ABP doesn't use devnonce nor gateway
 
             Assert.Single(items);
             registryManagerMock.Verify(x => x.GetAllLoRaDevices(), Times.Once);

@@ -85,9 +85,9 @@ namespace LoRaTools.CacheStore
             return this.redisCache.KeyDelete(key, CommandFlags.DemandMaster);
         }
 
-        public bool LockRelease(string key, string value)
+        public bool LockRelease(string key, string owner)
         {
-            return this.redisCache.LockRelease(key, value);
+            return this.redisCache.LockRelease(key, owner);
         }
 
         public long ListAdd(string key, string value, TimeSpan? expiration = null)

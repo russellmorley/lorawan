@@ -63,14 +63,18 @@ namespace LoraDeviceManagerServices.LoraDeviceManagerServices
 
             if (!DevEui.TryParse(paramDevEui, EuiParseOptions.ForbidInvalid, out var devEui))
             {
-                return new BadRequestObjectResult("DevEUI is missing or invalid.");
+                var message = "DevEUI is missing or invalid.";
+                logger.LogError(message);
+                return new BadRequestObjectResult(message);
             }
 
             using var deviceScope = logger.BeginDeviEuiScope(devEui);
 
             if (!uint.TryParse(paramFCntUp, out var fCntUp))
             {
-                throw new ArgumentException("FCntUp param is missing or invalid");
+                var message = "FCntUp param is missing or invalid";
+                logger.LogError(message);
+                return new BadRequestObjectResult(message);
             }
 
             if (paramAbpFcntCacheReset != StringValues.Empty)
@@ -83,7 +87,9 @@ namespace LoraDeviceManagerServices.LoraDeviceManagerServices
             if (!uint.TryParse(paramFCntDown, out var fCntDown) ||
                 StringValues.IsNullOrEmpty(paramGatewayId))
             {
-                return new BadRequestObjectResult("FCntDown or GatewayId params missing or invalid");
+                var message = "FCntDown or GatewayId params missing or invalid";
+                logger.LogError(message);
+                return new BadRequestObjectResult(message);
             }
 
             try

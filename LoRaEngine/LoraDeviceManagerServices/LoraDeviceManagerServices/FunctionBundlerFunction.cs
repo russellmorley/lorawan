@@ -62,7 +62,9 @@ namespace LoraDeviceManagerServices.LoraDeviceManagerServices
 
             if (!DevEui.TryParse(paramDevEUI, EuiParseOptions.ForbidInvalid, out var devEui))
             {
-                return new BadRequestObjectResult("DevEUI is invalid.");
+                var message = "DevEUI is invalid.";
+                logger.LogError(message);
+                return new BadRequestObjectResult(message);
             }
 
             try

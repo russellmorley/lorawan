@@ -56,7 +56,18 @@ namespace LoRaWan.Core
             if (request is null) throw new ArgumentNullException(nameof(request));
 
             // adds the version to the request
-            request.RequestUri = new Uri(string.Concat(request.RequestUri.ToString(), string.IsNullOrEmpty(request.RequestUri.Query) ? "?" : "&", ApiVersion.QueryStringParamName, "=", MinFunctionVersion.Version));
+
+            request.RequestUri = new Uri(
+                string.Concat(
+                    request.RequestUri.ToString(),
+                    request.RequestUri.Query.Contains(ApiVersion.QueryStringParamName, StringComparison.OrdinalIgnoreCase) ?
+                        "" : //if it's already been added (e.g. this is a retry), don't add it again.
+                        string.Concat(
+                            string.IsNullOrEmpty(request.RequestUri.Query) ? "?" : "&", 
+                            ApiVersion.QueryStringParamName, "=", MinFunctionVersion.Version
+                        )
+                    )
+            );
 
             // use next if one was provided (for unit testing)
             var response = (this.next != null) ? await this.next(request, cancellationToken) : await base.SendAsync(request, cancellationToken);

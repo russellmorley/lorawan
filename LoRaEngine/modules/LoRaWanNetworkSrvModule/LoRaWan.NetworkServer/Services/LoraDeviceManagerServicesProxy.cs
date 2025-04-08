@@ -88,24 +88,24 @@ namespace LoRaWan.NetworkServer.Services
             return 0;
         }
 
-        public override async Task<FunctionBundlerResult> ExecuteFunctionBundlerAsync(DevEui devEUI, FunctionBundlerRequest request)
+        public override async Task<FunctionBundlerResult> ExecuteFunctionBundlerAsync(DevEui devEUI, FunctionBundlerRequest functionBundlerRequest)
         {
-            var relativePath = $"FunctionBundler/{devEUI}";
-
+            var relativePath = $"FunctionBundler/{devEUI}"; 
+ 
             using var scope = logger.BeginScope("{RelativePath}: ", relativePath);
 
             using var client = CreateClient();
 
             var queryParameters = new Dictionary<string, string>()
             {
-                ["code"] = AuthCode,
+                ["code"] = AuthCode
             };
             queryParameters = tenantValidationStrategy.AddQueryParameters(queryParameters, CallingGatewayId, TenantId, TenantKey, DateTime.Now.AddMinutes(10));
 
             var url = BuildUri(relativePath, queryParameters);
             logger.LogDebug("QueryParams: {Query}", JsonConvert.SerializeObject(url.Query));
 
-            var sendBodyString = JsonConvert.SerializeObject(request);
+            var sendBodyString = JsonConvert.SerializeObject(functionBundlerRequest);
             logger.LogDebug("Body string to send: {BodyString}", sendBodyString);
 
             using var content = PreparePostContent(sendBodyString);
@@ -153,8 +153,8 @@ namespace LoRaWan.NetworkServer.Services
         }
 
         /// <inheritdoc />
-        public sealed override Task<SearchDevicesResult> SearchAndLockForJoinAsync(string gatewayID, DevEui devEUI, DevNonce devNonce)
-            => SearchDevicesAsync(gatewayID: gatewayID, devEui: devEUI, devNonce: devNonce);
+        public sealed override Task<SearchDevicesResult> SearchAndLockForJoinAsync(string gatewayId, DevEui devEui, DevNonce devNonce)
+            => SearchDevicesAsync(gatewayID: gatewayId, devEui: devEui, devNonce: devNonce);
 
         /// <inheritdoc />
         public sealed override Task<SearchDevicesResult> SearchByDevAddrAsync(DevAddr devAddr)
@@ -163,7 +163,7 @@ namespace LoRaWan.NetworkServer.Services
         /// <summary>
         /// Helper method that calls the API GetDevice method.
         /// </summary>
-        private async Task<SearchDevicesResult> SearchDevicesAsync(string gatewayID = null, DevAddr? devAddr = null, DevEui? devEui = null, string appEUI = null, DevNonce? devNonce = null)
+        private async Task<SearchDevicesResult> SearchDevicesAsync(string gatewayID = null, DevAddr? devAddr = null, DevEui? devEui = null, DevNonce? devNonce = null)
         {
             var relativePath = "GetDevice";
 
@@ -177,11 +177,10 @@ namespace LoRaWan.NetworkServer.Services
             var queryParameters = new Dictionary<string, string>()
             {
                 ["code"] = AuthCode,
-                ["GateWayId"] = gatewayID,
-                ["DevAddr"] = devAddr?.ToString(),
-                ["DevEUI"] = devEui?.ToString(),
-                ["AppEUI"] = appEUI,
-                ["DevNonce"] = devNonce?.ToString(),
+                ["GateWayId"] = gatewayID ?? "",
+                ["DevAddr"] = devAddr?.ToString() ?? "",
+                ["DevEUI"] = devEui?.ToString() ?? "",
+                ["DevNonce"] = devNonce?.ToString() ?? "",
             };
             queryParameters = tenantValidationStrategy.AddQueryParameters(queryParameters, CallingGatewayId, TenantId, TenantKey, DateTime.Now.AddMinutes(10));
 
@@ -379,7 +378,8 @@ namespace LoRaWan.NetworkServer.Services
 
         internal Uri BuildUri(string relativePath, IDictionary<string, string> queryParameters)
         {
-            var baseUrl = GetFullUri(relativePath);
+            //var baseUrl = GetFullUri(relativePath);
+            var baseUrl = URL.OriginalString.EndsWith('/') ? URL : new Uri($"{URL.OriginalString}/");
 
             var queryParameterSb = new StringBuilder(relativePath);
             queryParameterSb = queryParameters

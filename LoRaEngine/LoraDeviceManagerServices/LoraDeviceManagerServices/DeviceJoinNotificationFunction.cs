@@ -69,6 +69,12 @@ namespace LoraDeviceManagerServices.LoraDeviceManagerServices
                 logger.LogError(message);
                 return new BadRequestObjectResult(message);
             }
+            if (deviceJoinNotification.DevEUI == null)
+            {
+                var message = "deviceJoinNotification.DevEUI is null";
+                logger.LogError(message);
+                return new BadRequestObjectResult(message);
+            }
 
             using var deviceScope = logger.BeginDeviEuiScope(deviceJoinNotification.DevEUI);
 

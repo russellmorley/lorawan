@@ -11,7 +11,8 @@ namespace LoraDeviceManager
 {
     public interface ILoraDeviceManager
     {
-        public Task<List<IoTHubDeviceInfo>> GetDeviceList(DevEui? devEUI, string gatewayId, DevNonce? devNonce, DevAddr? devAddr);
+        public Task<List<IoTHubDeviceInfo>> GetDeviceList(DevAddr devAddr);
+        public Task<List<IoTHubDeviceInfo>> GetDeviceList(DevEui devEui, string gatewayId, DevNonce devNonce);
         public Task<string?> GetDevicePrimaryKey(string eui);
         public Task<uint> GetNextFCntDownAsync(DevEui devEui, string gatewayId, uint fCntUp, uint fCntDown);
         public Task AbpFcntCacheReset(DevEui devEui, string gatewayId);

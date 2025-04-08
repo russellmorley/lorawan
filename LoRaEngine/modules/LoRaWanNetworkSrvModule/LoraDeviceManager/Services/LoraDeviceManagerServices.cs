@@ -38,9 +38,9 @@ namespace LoraDeviceManager.Services
             return true;
         }
 
-        public async override Task<FunctionBundlerResult> ExecuteFunctionBundlerAsync(DevEui devEUI, FunctionBundlerRequest request)
+        public async override Task<FunctionBundlerResult> ExecuteFunctionBundlerAsync(DevEui devEUI, FunctionBundlerRequest functionBundlerRequest)
         {
-            return await loraDeviceManager.ExecuteFunctionBundlerAsync(devEUI, request);
+            return await loraDeviceManager.ExecuteFunctionBundlerAsync(devEUI, functionBundlerRequest);
         }
 
         public async override Task<string> FetchStationCredentialsAsync(StationEui eui, ConcentratorCredentialType credentialtype, CancellationToken cancellationToken)
@@ -103,19 +103,48 @@ namespace LoraDeviceManager.Services
         }
 
         /// <inheritdoc />
-        public sealed override Task<SearchDevicesResult> SearchAndLockForJoinAsync(string gatewayID, DevEui devEUI, DevNonce devNonce)
-            => SearchDevicesAsync(gatewayId: gatewayID, devEui: devEUI, devNonce: devNonce);
-
-        /// <inheritdoc />
-        public sealed override Task<SearchDevicesResult> SearchByDevAddrAsync(DevAddr devAddr)
-            => SearchDevicesAsync(devAddr: devAddr);
-
-        private async Task<SearchDevicesResult> SearchDevicesAsync(string gatewayId = null, DevAddr? devAddr = null, DevEui? devEui = null, string appEUI = null, DevNonce? devNonce = null)
+        public async sealed override Task<SearchDevicesResult> SearchAndLockForJoinAsync(string gatewayId, DevEui devEui, DevNonce devNonce)
         {
             try
             {
 
-                var loraDeviceManagerDeviceInfos = await loraDeviceManager.GetDeviceList(devEui, gatewayId, devNonce, devAddr);
+                var loraDeviceManagerDeviceInfos = await loraDeviceManager.GetDeviceList(devEui, gatewayId, devNonce);
+                var json = JsonConvert.SerializeObject(loraDeviceManagerDeviceInfos);
+                var devices = (List<IoTHubDeviceServiceInfo>)JsonConvert.DeserializeObject(json, typeof(List<IoTHubDeviceServiceInfo>));
+
+                return new SearchDevicesResult(devices);
+            }
+            catch (DeviceNonceUsedException)
+            {
+                return new SearchDevicesResult
+                {
+                    IsDevNonceAlreadyUsed = true,
+                };
+            }
+            catch (JoinRefusedException ex) when (ExceptionFilterUtility.True(() => this.logger.LogDebug("Join refused: {msg}", ex.Message)))
+            {
+                return new SearchDevicesResult()
+                {
+                    RefusedMessage = "JoinRefused: " + ex.Message
+                };
+            }
+            catch (ArgumentException ex)
+            {
+
+                logger.LogError("{DevEui} error calling loraDeviceManager.GetDeviceList: {Message}. Details: {Stack}", devEui, ex.Message, ex);
+
+                // TODO: FBE check if we return null or throw exception
+                return new SearchDevicesResult();
+            }
+        }
+
+        /// <inheritdoc />
+        public async sealed override Task<SearchDevicesResult> SearchByDevAddrAsync(DevAddr devAddr)
+        {
+            try
+            {
+
+                var loraDeviceManagerDeviceInfos = await loraDeviceManager.GetDeviceList(devAddr);
                 var json = JsonConvert.SerializeObject(loraDeviceManagerDeviceInfos);
                 var devices = (List<IoTHubDeviceServiceInfo>)JsonConvert.DeserializeObject(json, typeof(List<IoTHubDeviceServiceInfo>));
 
@@ -144,7 +173,6 @@ namespace LoraDeviceManager.Services
                 return new SearchDevicesResult();
             }
         }
-
 
         public override Task SendJoinNotificationAsync(DeviceJoinNotification deviceJoinNotification, CancellationToken token)
         {

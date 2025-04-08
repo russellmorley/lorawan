@@ -46,6 +46,7 @@ namespace LoRaWan.Tests.Unit.NetworkServer
         [InlineData("https://aka.ms/api", "A", "https://aka.ms/api/A?foo=fooVal&bar=barVal", "foo", "fooVal", "bar", "barVal")]
         [InlineData("https://aka.ms/api", "A", "https://aka.ms/api/A?foo=fooVal", "foo", "fooVal", "bar", null)]
         [InlineData("https://aka.ms/api", "A", "https://aka.ms/api/A", "foo", null, "bar", null)]
+        [InlineData("https://aka.ms/api/", "A/1", "https://aka.ms/api/A/1?foo=fooVal&bar=barVal", "foo", "fooVal", "bar", "barVal")]
         public void BuildUri_Success(string basePath, string relativePath, string expected, params string[] queryParams)
         {
             // arrange

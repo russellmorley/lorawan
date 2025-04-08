@@ -79,129 +79,129 @@ namespace LoraDeviceManager
             }
         }
 
-        public async Task<List<IoTHubDeviceInfo>> GetDeviceList(DevEui? devEUI, string gatewayId, DevNonce? devNonce, DevAddr? devAddr)
+        public async Task<List<IoTHubDeviceInfo>> GetDeviceList(DevAddr devAddr)
         {
             var results = new List<IoTHubDeviceInfo>();
 
-            if (devEUI is { } someDevEui)
+            var owner = devAddr.ToString(); //owner of locks
+            // ABP or normal message
+
+            // TODO check for sql injection
+            _ = loRaDevAddrCache.PerformNeededSyncs(this.deviceRegistryManager, owner);
+            if (await loRaDevAddrCache.TryTakeDevAddrUpdateLock(devAddr, owner))
             {
-                var joinInfo = await TryGetJoinInfoAndValidateAsync(someDevEui, gatewayId);
-
-                // OTAA join
-                using var deviceCache = new LoRaDeviceCache(this.cacheStore, someDevEui, gatewayId);
-                var cacheKeyDevNonce = string.Concat(devEUI, ":", devNonce);
-
-                if (this.cacheStore.StringSet(cacheKeyDevNonce, devNonce?.ToString(), TimeSpan.FromMinutes(5), onlyIfNotExists: true))
+                try
                 {
-                    var iotHubDeviceInfo = new IoTHubDeviceInfo
+                    if (loRaDevAddrCache.TryGetInfo(devAddr, out var devAddressesInfo))
                     {
-                        DevEUI = someDevEui,
-                        PrimaryKey = joinInfo.PrimaryKey
-                    };
+                        for (var i = 0; i < devAddressesInfo.Count; i++)
+                        {
+                            if (devAddressesInfo[i].DevEUI is { } someDevEuiPrime)
+                            {
+                                // device was not yet populated
+                                if (!string.IsNullOrEmpty(devAddressesInfo[i].PrimaryKey))
+                                {
+                                    results.Add(devAddressesInfo[i]);
+                                }
+                                else
+                                {
+                                    // we need to load the primaryKey from IoTHub
+                                    // Add a lock loadPrimaryKey get lock get
+                                    devAddressesInfo[i].PrimaryKey = await deviceRegistryManager.GetDevicePrimaryKeyAsync(someDevEuiPrime.ToString());
+                                    results.Add(devAddressesInfo[i]);
+                                    loRaDevAddrCache.StoreInfo(devAddressesInfo[i]);
+                                }
 
-                    results.Add(iotHubDeviceInfo);
+                                // even if we fail to acquire the lock we wont enter in the next condition as devaddressinfo is not null
+                            }
+                        }
+                    }
 
-                    if (await deviceCache.TryToLockAsync())
+                    // if the cache results are null, we query the IoT Hub.
+                    // if the device is not found is the cache we query, if there was something, it is probably not our device.
+                    if (results.Count == 0 && devAddressesInfo == null)
                     {
-                        deviceCache.ClearCache(); // clear the fcnt up/down after the join
-                        this.logger.LogDebug("Removed key '{key}':{gwid}", someDevEui, gatewayId);
+                        var query = this.deviceRegistryManager.FindLoRaDeviceByDevAddr(devAddr);
+                        var resultCount = 0;
+                        while (query.HasMoreResults)
+                        {
+                            var page = await query.GetNextPageAsync();
+
+                            foreach (var twin in page)
+                            {
+                                if (twin.DeviceId != null)
+                                {
+                                    var iotHubDeviceInfo = new DevAddrCacheInfo
+                                    {
+                                        DevAddr = devAddr,
+                                        DevEUI = DevEui.Parse(twin.DeviceId),
+                                        PrimaryKey = await this.deviceRegistryManager.GetDevicePrimaryKeyAsync(twin.DeviceId),
+                                        GatewayId = twin.GetGatewayID(),
+                                        NwkSKey = twin.GetNwkSKey(),
+                                        LastUpdatedTwins = twin.Properties.Desired.GetLastUpdated()
+                                    };
+                                    results.Add(iotHubDeviceInfo);
+                                    loRaDevAddrCache.StoreInfo(iotHubDeviceInfo);
+                                }
+
+                                resultCount++;
+                            }
+                        }
+
+                        // todo save when not our devaddr
+                        if (resultCount == 0)
+                        {
+                            loRaDevAddrCache.StoreInfo(new DevAddrCacheInfo()
+                            {
+                                DevAddr = devAddr
+                            });
+                        }
                     }
-                    else
-                    {
-                        this.logger.LogWarning("Failed to acquire lock for '{key}'", someDevEui);
-                    }
+                }
+                finally
+                {
+                    _ = loRaDevAddrCache.ReleaseDevAddrUpdateLock(devAddr, owner);
+                }
+            }
+            return results;
+        }
+
+        public async Task<List<IoTHubDeviceInfo>> GetDeviceList(DevEui devEui, string gatewayId, DevNonce devNonce)
+        {
+            var owner = gatewayId; //owner of locks
+
+            var results = new List<IoTHubDeviceInfo>();
+
+            var joinInfo = await TryGetJoinInfoAndValidateAsync(devEui, owner);
+
+            // OTAA join
+            using var deviceCache = new LoRaDeviceCache(this.cacheStore, devEui, gatewayId);
+            var cacheKeyDevNonce = string.Concat(devEui, ":", devNonce.ToString()); //in c#, concatenating null concatenates an empty string.
+
+            if (this.cacheStore.StringSet(cacheKeyDevNonce, devNonce.ToString(), TimeSpan.FromMinutes(5), onlyIfNotExists: true))
+            {
+                var iotHubDeviceInfo = new IoTHubDeviceInfo
+                {
+                    DevEUI = devEui,
+                    PrimaryKey = joinInfo.PrimaryKey
+                };
+
+                results.Add(iotHubDeviceInfo);
+
+                if (await deviceCache.TryToLockAsync())
+                {
+                    deviceCache.ClearCache(); // clear the fcnt up/down after the join
+                    this.logger.LogDebug("Removed key '{key}':{gwid}", devEui, owner);
                 }
                 else
                 {
-                    this.logger.LogDebug("dev nonce already used. Ignore request '{key}':{gwid}", someDevEui, gatewayId);
-                    throw new DeviceNonceUsedException();
-                }
-            }
-            else if (devAddr is { } someDevAddr)
-            {
-                // ABP or normal message
-
-                // TODO check for sql injection
-                _ = loRaDevAddrCache.PerformNeededSyncs(this.deviceRegistryManager, gatewayId);
-                if (await loRaDevAddrCache.TryTakeDevAddrUpdateLock(someDevAddr, gatewayId))
-                {
-                    try
-                    {
-                        if (loRaDevAddrCache.TryGetInfo(someDevAddr, out var devAddressesInfo))
-                        {
-                            for (var i = 0; i < devAddressesInfo.Count; i++)
-                            {
-                                if (devAddressesInfo[i].DevEUI is { } someDevEuiPrime)
-                                {
-                                    // device was not yet populated
-                                    if (!string.IsNullOrEmpty(devAddressesInfo[i].PrimaryKey))
-                                    {
-                                        results.Add(devAddressesInfo[i]);
-                                    }
-                                    else
-                                    {
-                                        // we need to load the primaryKey from IoTHub
-                                        // Add a lock loadPrimaryKey get lock get
-                                        devAddressesInfo[i].PrimaryKey = await deviceRegistryManager.GetDevicePrimaryKeyAsync(someDevEuiPrime.ToString());
-                                        results.Add(devAddressesInfo[i]);
-                                        loRaDevAddrCache.StoreInfo(devAddressesInfo[i]);
-                                    }
-
-                                    // even if we fail to acquire the lock we wont enter in the next condition as devaddressinfo is not null
-                                }
-                            }
-                        }
-
-                        // if the cache results are null, we query the IoT Hub.
-                        // if the device is not found is the cache we query, if there was something, it is probably not our device.
-                        if (results.Count == 0 && devAddressesInfo == null)
-                        {
-                            var query = this.deviceRegistryManager.FindLoRaDeviceByDevAddr(someDevAddr);
-                            var resultCount = 0;
-                            while (query.HasMoreResults)
-                            {
-                                var page = await query.GetNextPageAsync();
-
-                                foreach (var twin in page)
-                                {
-                                    if (twin.DeviceId != null)
-                                    {
-                                        var iotHubDeviceInfo = new DevAddrCacheInfo
-                                        {
-                                            DevAddr = someDevAddr,
-                                            DevEUI = DevEui.Parse(twin.DeviceId),
-                                            PrimaryKey = await this.deviceRegistryManager.GetDevicePrimaryKeyAsync(twin.DeviceId),
-                                            GatewayId = twin.GetGatewayID(),
-                                            NwkSKey = twin.GetNwkSKey(),
-                                            LastUpdatedTwins = twin.Properties.Desired.GetLastUpdated()
-                                        };
-                                        results.Add(iotHubDeviceInfo);
-                                        loRaDevAddrCache.StoreInfo(iotHubDeviceInfo);
-                                    }
-
-                                    resultCount++;
-                                }
-                            }
-
-                            // todo save when not our devaddr
-                            if (resultCount == 0)
-                            {
-                                loRaDevAddrCache.StoreInfo(new DevAddrCacheInfo()
-                                {
-                                    DevAddr = someDevAddr
-                                });
-                            }
-                        }
-                    }
-                    finally
-                    {
-                        _ = loRaDevAddrCache.ReleaseDevAddrUpdateLock(someDevAddr, gatewayId);
-                    }
+                    this.logger.LogWarning("Failed to acquire lock for '{key}'", devEui);
                 }
             }
             else
             {
-                throw new ArgumentException("Missing devEUI or devAddr");
+                this.logger.LogDebug("dev nonce already used. Ignore request '{key}':{gwid}", devEui, gatewayId);
+                throw new DeviceNonceUsedException();
             }
 
             return results;
@@ -212,25 +212,34 @@ namespace LoraDeviceManager
             return await frameCounter.GetNextFCntDownAsync(devEui, gatewayId, fCntUp, fCntDown);
         }
 
-        private async Task<JoinInfo> TryGetJoinInfoAndValidateAsync(DevEui devEUI, string gatewayId)
+        private async Task<JoinInfo> TryGetJoinInfoAndValidateAsync(DevEui devEui, string owner)
         {
-            var cacheKeyJoinInfo = string.Concat(devEUI, ":joininfo");
-            var lockKeyJoinInfo = string.Concat(devEUI, ":joinlockjoininfo");
+            var cacheKeyJoinInfo = string.Concat(devEui, ":joininfo");
+            var lockKeyJoinInfo = string.Concat(devEui, ":joinlockjoininfo");
             JoinInfo joinInfo = null;
 
-            if (await this.cacheStore.LockTakeAsync(lockKeyJoinInfo, gatewayId, TimeSpan.FromMinutes(5)))
+            if (await this.cacheStore.LockTakeAsync(lockKeyJoinInfo, owner, TimeSpan.FromMinutes(5)))
             {
                 try
                 {
-                    joinInfo = this.cacheStore.GetObject<JoinInfo>(cacheKeyJoinInfo);
+                    joinInfo = cacheStore.GetObject<JoinInfo>(cacheKeyJoinInfo);
                     if (joinInfo == null)
                     {
+                        var primaryKey = await deviceRegistryManager.GetDevicePrimaryKeyAsync(devEui.ToString());
+                        if (string.IsNullOrEmpty(primaryKey))
+                        {
+                            throw new JoinRefusedException($"Device or device primary key not found in hub for devEui: ${devEui}");
+                        }
                         joinInfo = new JoinInfo
                         {
-                            PrimaryKey = await this.deviceRegistryManager.GetDevicePrimaryKeyAsync(devEUI.ToString())
+                            PrimaryKey = primaryKey
                         };
 
-                        var twin = await this.deviceRegistryManager.GetLoRaDeviceTwinAsync(devEUI.ToString());
+                        var twin = await this.deviceRegistryManager.GetLoRaDeviceTwinAsync(devEui.ToString());
+                        if (twin == null)
+                        {
+                            throw new JoinRefusedException($"Device twin not found in hub for devEui: ${devEui}");
+                        }
                         var deviceGatewayId = twin.GetGatewayID();
                         if (!string.IsNullOrEmpty(deviceGatewayId))
                         {
@@ -238,26 +247,21 @@ namespace LoraDeviceManager
                         }
 
                         _ = this.cacheStore.ObjectSet(cacheKeyJoinInfo, joinInfo, TimeSpan.FromMinutes(60));
-                        this.logger.LogDebug("updated cache with join info '{key}':{gwid}", devEUI, gatewayId);
+                        this.logger.LogDebug("updated cache with join info '{key}':{gwid}", devEui, owner);
                     }
                 }
                 finally
                 {
-                    _ = this.cacheStore.LockRelease(lockKeyJoinInfo, gatewayId);
-                }
-
-                if (string.IsNullOrEmpty(joinInfo.PrimaryKey))
-                {
-                    throw new JoinRefusedException("Not in our network.");
+                    _ = this.cacheStore.LockRelease(lockKeyJoinInfo, owner);
                 }
 
                 if (!string.IsNullOrEmpty(joinInfo.DesiredGateway) &&
-                    !joinInfo.DesiredGateway.Equals(gatewayId, StringComparison.OrdinalIgnoreCase))
+                    !joinInfo.DesiredGateway.Equals(owner, StringComparison.OrdinalIgnoreCase))
                 {
                     throw new JoinRefusedException($"Not the owning gateway. Owning gateway is '{joinInfo.DesiredGateway}'");
                 }
 
-                this.logger.LogDebug("got LogInfo '{key}':{gwid} attached gw: {desiredgw}", devEUI, gatewayId, joinInfo.DesiredGateway);
+                this.logger.LogDebug("got LogInfo '{key}':{gwid} attached gw: {desiredgw}", devEui, owner, joinInfo.DesiredGateway);
             }
             else
             {
