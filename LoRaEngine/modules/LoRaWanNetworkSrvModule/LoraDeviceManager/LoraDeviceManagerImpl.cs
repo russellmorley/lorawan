@@ -228,7 +228,7 @@ namespace LoraDeviceManager
                         var primaryKey = await deviceRegistryManager.GetDevicePrimaryKeyAsync(devEui.ToString());
                         if (string.IsNullOrEmpty(primaryKey))
                         {
-                            throw new JoinRefusedException($"Device or device primary key not found in hub for devEui: ${devEui}");
+                            throw new JoinRefusedException($"Device or device primary key not found in hub for devEui: {devEui}");
                         }
                         joinInfo = new JoinInfo
                         {
@@ -238,7 +238,7 @@ namespace LoraDeviceManager
                         var twin = await this.deviceRegistryManager.GetLoRaDeviceTwinAsync(devEui.ToString());
                         if (twin == null)
                         {
-                            throw new JoinRefusedException($"Device twin not found in hub for devEui: ${devEui}");
+                            throw new JoinRefusedException($"Device twin not found in hub for devEui: {devEui}");
                         }
                         var deviceGatewayId = twin.GetGatewayID();
                         if (!string.IsNullOrEmpty(deviceGatewayId))
