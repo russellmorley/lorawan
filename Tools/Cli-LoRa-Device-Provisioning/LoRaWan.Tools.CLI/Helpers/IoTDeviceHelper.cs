@@ -59,7 +59,8 @@ namespace LoRaWan.Tools.CLI.Helpers
             var downlinkEnabled = ReadTwin(twin.Properties.Desired, TwinProperty.DownlinkEnabled);
             var preferredWindow = ReadTwin(twin.Properties.Desired, TwinProperty.PreferredWindow);
             var deduplication = ReadTwin(twin.Properties.Desired, TwinProperty.Deduplication);
-            var rx2DataRate = ReadTwin(twin.Properties.Desired, TwinProperty.RX2DataRate);
+            int rx2DataRate;
+            if (!int.TryParse(ReadTwin(twin.Properties.Desired, TwinProperty.RX2DataRate), out rx2DataRate)) rx2DataRate = -1;
             var rx1DrOffset = ReadTwin(twin.Properties.Desired, TwinProperty.RX1DROffset);
             var rxDelay = ReadTwin(twin.Properties.Desired, TwinProperty.RXDelay);
             var keepAliveTimeout = ReadTwin(twin.Properties.Desired, TwinProperty.KeepAliveTimeout);
@@ -240,9 +241,6 @@ namespace LoRaWan.Tools.CLI.Helpers
 
             if (!string.IsNullOrEmpty(opts.Deduplication))
                 opts.Deduplication = ValidationHelper.CleanString(opts.Deduplication);
-
-            if (!string.IsNullOrEmpty(opts.Rx2DataRate))
-                opts.Rx2DataRate = ValidationHelper.CleanString(opts.Rx2DataRate);
 
             if (!string.IsNullOrEmpty(opts.Rx1DrOffset))
                 opts.Rx1DrOffset = ValidationHelper.CleanString(opts.Rx1DrOffset);
@@ -568,16 +566,13 @@ namespace LoRaWan.Tools.CLI.Helpers
                 }
 
                 // Rx2DataRate
-                if (!string.IsNullOrEmpty(opts.Rx2DataRate))
+                if (!ValidationHelper.ValidateDataRateTwinProperty(opts.Rx2DataRate, out validationError))
                 {
-                    if (!ValidationHelper.ValidateDataRateTwinProperty(opts.Rx2DataRate, out validationError))
-                    {
-                        StatusConsole.WriteLogLineWithDevEuiWhenVerbose(MessageType.Error, $"Rx2DataRate {opts.Rx2DataRate} is invalid: {validationError}.", opts.DevEui, isVerbose);
-                        isValid = false;
-                    }
-
-                    StatusConsole.WriteLogLineWithDevEuiWhenVerbose(MessageType.Warning, $"Rx2DataRate is currently not supported for ABP devices.", opts.DevEui, isVerbose);
+                    StatusConsole.WriteLogLineWithDevEuiWhenVerbose(MessageType.Error, $"Rx2DataRate {opts.Rx2DataRate} is invalid: {validationError}.", opts.DevEui, isVerbose);
+                    isValid = false;
                 }
+
+                StatusConsole.WriteLogLineWithDevEuiWhenVerbose(MessageType.Warning, $"Rx2DataRate is currently not supported for ABP devices.", opts.DevEui, isVerbose);
 
                 // Rx1DrOffset
                 if (!string.IsNullOrEmpty(opts.Rx1DrOffset))
@@ -642,17 +637,14 @@ namespace LoRaWan.Tools.CLI.Helpers
                 }
 
                 // Rx2DataRate
-                if (!string.IsNullOrEmpty(opts.Rx2DataRate))
+                if (!ValidationHelper.ValidateDataRateTwinProperty(opts.Rx2DataRate, out validationError))
                 {
-                    if (!ValidationHelper.ValidateDataRateTwinProperty(opts.Rx2DataRate, out validationError))
-                    {
-                        StatusConsole.WriteLogLineWithDevEuiWhenVerbose(MessageType.Error, $"Rx2DataRate {opts.Rx2DataRate} is invalid: {validationError}.", opts.DevEui, isVerbose);
-                        isValid = false;
-                    }
-                    else
-                    {
-                        StatusConsole.WriteLogLineIfVerbose(MessageType.Info, $"Rx2DataRate {opts.Rx2DataRate} is valid.", isVerbose);
-                    }
+                    StatusConsole.WriteLogLineWithDevEuiWhenVerbose(MessageType.Error, $"Rx2DataRate {opts.Rx2DataRate} is invalid: {validationError}.", opts.DevEui, isVerbose);
+                    isValid = false;
+                }
+                else
+                {
+                    StatusConsole.WriteLogLineIfVerbose(MessageType.Info, $"Rx2DataRate {opts.Rx2DataRate} is valid.", isVerbose);
                 }
 
                 // Rx1DrOffset
@@ -1042,8 +1034,7 @@ namespace LoRaWan.Tools.CLI.Helpers
             if (!string.IsNullOrEmpty(opts.Deduplication))
                 twinProperties.Desired[TwinProperty.Deduplication] = ValidationHelper.ConvertToStringTwinProperty(opts.Deduplication);
 
-            if (!string.IsNullOrEmpty(opts.Rx2DataRate))
-                twinProperties.Desired[TwinProperty.RX2DataRate] = ValidationHelper.ConvertToStringTwinProperty(opts.Rx2DataRate);
+            twinProperties.Desired[TwinProperty.RX2DataRate] = opts.Rx2DataRate;
 
             if (!string.IsNullOrEmpty(opts.Rx1DrOffset))
                 twinProperties.Desired[TwinProperty.RX1DROffset] = ValidationHelper.ConvertToUIntTwinProperty(opts.Rx1DrOffset);
@@ -1134,8 +1125,7 @@ namespace LoRaWan.Tools.CLI.Helpers
             if (!string.IsNullOrEmpty(opts.Deduplication))
                 twin.Properties.Desired[TwinProperty.Deduplication] = ValidationHelper.ConvertToStringTwinProperty(opts.Deduplication);
 
-            if (!string.IsNullOrEmpty(opts.Rx2DataRate))
-                twin.Properties.Desired[TwinProperty.RX2DataRate] = ValidationHelper.ConvertToStringTwinProperty(opts.Rx2DataRate);
+            twin.Properties.Desired[TwinProperty.RX2DataRate] = opts.Rx2DataRate;
 
             if (!string.IsNullOrEmpty(opts.Rx1DrOffset))
                 twin.Properties.Desired[TwinProperty.RX1DROffset] = ValidationHelper.ConvertToUIntTwinProperty(opts.Rx1DrOffset);

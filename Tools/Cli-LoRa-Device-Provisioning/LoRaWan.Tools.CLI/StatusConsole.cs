@@ -72,7 +72,7 @@ namespace LoRaWan.Tools.CLI
             Console.WriteLine();
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine($"DevEUI: {devEui}");
-            Console.WriteLine(TwinToString(twin));
+            Console.WriteLine(twin is not null ? TwinToString(twin) : "");
             Console.ResetColor();
         }
 

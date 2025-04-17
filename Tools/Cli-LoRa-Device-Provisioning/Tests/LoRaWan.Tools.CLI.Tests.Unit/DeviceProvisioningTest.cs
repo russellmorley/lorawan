@@ -27,7 +27,7 @@ namespace LoRaWan.Tools.CLI.Tests.Unit
 
         // OTAA Properties
         private static readonly string AppKey = GetRandomHexNumber(32);
-        private static readonly string AppEui = GetRandomHexNumber(16);
+        private static readonly string AppEUI = GetRandomHexNumber(16);
 
         // ABP properties
         private static readonly string AppSKey = GetRandomHexNumber(32);
@@ -145,7 +145,7 @@ namespace LoRaWan.Tools.CLI.Tests.Unit
                     Assert.Equal(NetworkName, t.Tags[DeviceTags.NetworkTagName].ToString());
                     Assert.Equal(new string[] { DeviceTags.DeviceTypes.Leaf }, ((JArray)t.Tags[DeviceTags.DeviceTypeTagName]).Select(x => x.ToString()).ToArray());
                     Assert.Equal(AppKey, t.Properties.Desired[TwinProperty.AppKey].ToString());
-                    Assert.Equal(AppEui, t.Properties.Desired[TwinProperty.AppEUI].ToString());
+                    Assert.Equal(AppEUI, t.Properties.Desired[TwinProperty.AppEUI].ToString());
                     Assert.Equal(Decoder, t.Properties.Desired[TwinProperty.SensorDecoder].ToString());
                     Assert.Equal(string.Empty, t.Properties.Desired[TwinProperty.GatewayID].ToString());
                     if (includeTenantId)
@@ -172,7 +172,7 @@ namespace LoRaWan.Tools.CLI.Tests.Unit
             }
 
             // Act
-            var args = CreateArgs($"add --type otaa --deveui {DevEUI} --appeui {AppEui} --appkey {AppKey}  --decoder {Decoder} --network {NetworkName} {(includeTenantId ? $"--tenant-id {TenantId}" : string.Empty)}");
+            var args = CreateArgs($"add --type otaa --deveui {DevEUI} --appeui {AppEUI} --appkey {AppKey}  --decoder {Decoder} --network {NetworkName} {(includeTenantId ? $"--tenant-id {TenantId}" : string.Empty)}");
             var actual = await Program.Run(args, this.configurationHelper);
 
             // Assert
@@ -436,6 +436,30 @@ namespace LoRaWan.Tools.CLI.Tests.Unit
 
             // Assert
             Assert.Equal(-1, actual);
+        }
+
+        [Theory]
+        [InlineData("10")]
+        [InlineData("SF12BW500")]
+        public async Task ValidateRx2datarate(string rx2datarateValue)
+        {
+            // Arrange
+            registryManager.Setup(c => c.AddDeviceWithTwinAsync(
+                    It.Is<Device>(d => d.Id == DevEUI),
+                    It.IsNotNull<Twin>()))
+                .Callback((Device d, Twin t) => Assert.Equal(rx2datarateValue, t.Properties.Desired[TwinProperty.RX2DataRate].ToString()))
+                .ReturnsAsync(new BulkRegistryOperationResult
+                {
+                    IsSuccessful = true
+                });
+
+            // Act
+            var args = CreateArgs($"add --type otaa --deveui {DevEUI} --appeui {AppEUI} --appkey {AppKey}  --decoder {Decoder} --network {NetworkName} --classtype C --rx2datarate {rx2datarateValue}");
+            var actual = await Program.Run(args, configurationHelper);
+
+            if (rx2datarateValue == "10") Assert.Equal(0, actual);
+            else if (rx2datarateValue == "SF12BW500") Assert.Equal(-1, actual);
+            else Assert.True(false);
         }
     }
 }
