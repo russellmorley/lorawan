@@ -11,31 +11,31 @@ namespace LoRaWan.Tools.CLI.Helpers
 
     internal static class ValidationHelper
     {
-        private static readonly List<int> EuValidDataranges = new List<int>()
+        private static readonly List<string> EuValidDataranges = new List<string>()
             {
-                0, // "SF12BW125", // 0
-                1, // "SF11BW125", // 1
-                2, // "SF10BW125", // 2
-                3, // "SF9BW125", // 3
-                4, // "SF8BW125", // 4
-                5, // "SF7BW125", // 5
-                6, // "SF7BW250", // 6
-                50 // 7 FSK 50
+                "0", // "SF12BW125", // 0
+                "1", // "SF11BW125", // 1
+                "2", // "SF10BW125", // 2
+                "3", // "SF9BW125", // 3
+                "4", // "SF8BW125", // 4
+                "5", // "SF7BW125", // 5
+                "6", // "SF7BW250", // 6
+                "50" // 7 FSK 50
             };
 
-        private static readonly List<int> UsValidDataranges = new List<int>()
+        private static readonly List<string> UsValidDataranges = new List<string>()
             {
-                0, // "SF10BW125", // 0
-                1, // "SF9BW125", // 1
-                2, // "SF8BW125", // 2
-                3, //"SF7BW125", // 3
-                4, // "SF8BW500", // 4
-                8, // "SF12BW500", // 8
-                9, // "SF11BW500", // 9
-                10, // "SF10BW500", // 10
-                11, // "SF9BW500", // 11
-                12, // "SF8BW500", // 12
-                13, // "SF8BW500" // 13
+                "0", // "SF10BW125", // 0
+                "1", // "SF9BW125", // 1
+                "2", // "SF8BW125", // 2
+                "3", //"SF7BW125", // 3
+                "4", // "SF8BW500", // 4
+                "8", // "SF12BW500", // 8
+                "9", // "SF11BW500", // 9
+                "10", // "SF10BW500", // 10
+                "11", // "SF9BW500", // 11
+                "12", // "SF8BW500", // 12
+                "13", // "SF8BW500" // 13
             };
 
         public static string GetDataRatesforLocale(string locale)
@@ -286,7 +286,7 @@ namespace LoRaWan.Tools.CLI.Helpers
             return isValid;
         }
 
-        public static bool ValidateDataRateTwinProperty(int rx2dataratePropertyValue, out string error)
+        public static bool ValidateDataRateTwinProperty(string rx2dataratePropertyValue, out string error)
         {
             error = null;
 

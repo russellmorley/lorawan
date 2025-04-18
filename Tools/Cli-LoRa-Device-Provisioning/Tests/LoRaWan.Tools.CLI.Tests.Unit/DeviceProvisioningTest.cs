@@ -443,6 +443,7 @@ namespace LoRaWan.Tools.CLI.Tests.Unit
         [InlineData("SF12BW500")]
         public async Task ValidateRx2datarate(string rx2datarateValue)
         {
+            Twin twin = new Twin();
             // Arrange
             registryManager.Setup(c => c.AddDeviceWithTwinAsync(
                     It.Is<Device>(d => d.Id == DevEUI),
@@ -452,6 +453,8 @@ namespace LoRaWan.Tools.CLI.Tests.Unit
                 {
                     IsSuccessful = true
                 });
+
+            registryManager.Setup(x => x.GetTwinAsync(DevEUI)).ReturnsAsync(twin);
 
             // Act
             var args = CreateArgs($"add --type otaa --deveui {DevEUI} --appeui {AppEUI} --appkey {AppKey}  --decoder {Decoder} --network {NetworkName} --classtype C --rx2datarate {rx2datarateValue}");
