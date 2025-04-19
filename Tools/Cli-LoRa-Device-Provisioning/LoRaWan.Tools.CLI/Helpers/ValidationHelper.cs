@@ -4,6 +4,7 @@
 namespace LoRaWan.Tools.CLI.Helpers
 {
     using System;
+    using System.Linq;
     using System.Collections.Generic;
     using System.Globalization;
     using System.Text;
@@ -11,31 +12,31 @@ namespace LoRaWan.Tools.CLI.Helpers
 
     internal static class ValidationHelper
     {
-        private static readonly List<string> EuValidDataranges = new List<string>()
+        private static readonly List<(int, string)> EuValidDataranges = new()
             {
-                "SF12BW125", // 0
-                "SF11BW125", // 1
-                "SF10BW125", // 2
-                "SF9BW125", // 3
-                "SF8BW125", // 4
-                "SF7BW125", // 5
-                "SF7BW250", // 6
-                "50" // 7 FSK 50
+                (0, "DR0"), // "SF12BW125" // 0
+                (1, "DR1"), // "SF11BW125" // 1
+                (2, "DR2"), // "SF10BW125" // 2
+                (3, "DR3"), // "SF9BW125" // 3
+                (4, "DR4"), // "SF8BW125" // 4
+                (5, "DR5"), // "SF7BW125" // 5
+                (6, "DR6"), // "SF7BW250" // 6
+                (7, "DR7") // "FSK50" // 7 FSK 50
             };
 
-        private static readonly List<string> UsValidDataranges = new List<string>()
+        private static readonly List<(int, string)> UsValidDataranges = new()
             {
-                "SF10BW125", // 0
-                "SF9BW125", // 1
-                "SF8BW125", // 2
-                "SF7BW125", // 3
-                "SF8BW500", // 4
-                "SF12BW500", // 8
-                "SF11BW500", // 9
-                "SF10BW500", // 10
-                "SF9BW500", // 11
-                "SF8BW500", // 12
-                "SF8BW500" // 13
+                (0, "DR0"), // "SF10BW125" // 0
+                (1, "DR1"), // "SF9BW125" // 1
+                (2, "DR2"), // "SF8BW125" // 2
+                (3, "DR3"), // "SF7BW125" // 3
+                (4, "DR4"), // "SF8BW500" // 4
+                (8, "DR8"), // "SF12BW500" // 8
+                (9, "DR9"), // "SF11BW500" // 9
+                (10, "DR10"), // "SF10BW500" // 10
+                (11, "DR11"), // "SF9BW500" // 11
+                (12, "DR12"), // "SF8BW500" // 12
+                (13, "DR13"), // "SF8BW500" // 13
             };
 
         public static string GetDataRatesforLocale(string locale)
@@ -187,6 +188,16 @@ namespace LoRaWan.Tools.CLI.Helpers
             }
         }
 
+        public static dynamic ConvertToUIntDataRateTwinProperty(string rx2datarateValue)
+        {
+            if (uint.TryParse(rx2datarateValue, out var uintProperty))
+                return uintProperty;
+            else if (rx2datarateValue.Length > 2 && uint.TryParse(rx2datarateValue.ToLower().Trim().Substring(2), out var uintPropertyRemaining))
+                return uintPropertyRemaining;
+            else
+                return rx2datarateValue; //should never happen after validation
+        }
+
         public static string ConvertToStringTwinProperty(string property)
         {
             if (!string.IsNullOrEmpty(property))
@@ -286,17 +297,28 @@ namespace LoRaWan.Tools.CLI.Helpers
             return isValid;
         }
 
-        public static bool ValidateDataRateTwinProperty(string property, out string error)
+        public static bool ValidateDataRateTwinProperty(string rx2dataratePropertyValue, out string error)
         {
             error = null;
 
-            if (!EuValidDataranges.Contains(property) && !UsValidDataranges.Contains(property))
-            {
-                error = "Property is not a valid data rate";
-                return false;
-            }
+            string rx2dataratePropertyValueUppercase = rx2dataratePropertyValue.ToUpper(CultureInfo.InvariantCulture);
 
-            return true;
+            bool isValid =
+                EuValidDataranges
+                    .Where(t => 
+                        t.Item1.ToString() == rx2dataratePropertyValueUppercase || 
+                        t.Item2 == rx2dataratePropertyValueUppercase)
+                    .Any()
+               ||
+                UsValidDataranges
+                    .Where(t =>
+                        t.Item1.ToString() == rx2dataratePropertyValueUppercase ||
+                        t.Item2 == rx2dataratePropertyValueUppercase)
+                    .Any();
+
+            if (!isValid) error = "Property is not a valid data rate";
+
+            return isValid;
         }
 
         public static bool ValidateSensorDecoder(string sensorDecoder, bool isVerbose)

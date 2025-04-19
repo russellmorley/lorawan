@@ -171,7 +171,7 @@ namespace LoRaWan.Tools.CLI.Options
         [Option(
             "rx2datarate",
             Required = false,
-            HelpText = "Rx2DataRate (Receive window 2 data rate, currently only supported for OTAA devices): Any of the allowed data rates. EU: SF12BW125, SF11BW125, SF10BW125, SF8BW125, SF7BW125, SF7BW250 or 50. US: SF10BW125, SF9BW125, SF8BW125, SF7BW125, SF8BW500, SF12BW500, SF11BW500, SF10BW500, SF9BW500, SF8BW500, SF8BW500. (optional).",
+            HelpText = "Rx2DataRate (Receive window 2 data rate, currently only supported for OTAA devices): enter either number or DRxx, where xx is the DR number, e.g. for DR10 enter number 10 or 'DR10'.",
             SetName = LoRaDeviceSetName)]
         public string Rx2DataRate { get; set; }
 
