@@ -1043,7 +1043,7 @@ namespace LoRaWan.Tools.CLI.Helpers
                 twinProperties.Desired[TwinProperty.Deduplication] = ValidationHelper.ConvertToStringTwinProperty(opts.Deduplication);
 
             if (!string.IsNullOrEmpty(opts.Rx2DataRate))
-                twinProperties.Desired[TwinProperty.RX2DataRate] = ValidationHelper.ConvertToUIntTwinProperty(opts.Rx2DataRate);
+                twinProperties.Desired[TwinProperty.RX2DataRate] = ValidationHelper.ConvertToUIntDataRateTwinProperty(opts.Rx2DataRate);
 
             if (!string.IsNullOrEmpty(opts.Rx1DrOffset))
                 twinProperties.Desired[TwinProperty.RX1DROffset] = ValidationHelper.ConvertToUIntTwinProperty(opts.Rx1DrOffset);
@@ -1135,7 +1135,7 @@ namespace LoRaWan.Tools.CLI.Helpers
                 twin.Properties.Desired[TwinProperty.Deduplication] = ValidationHelper.ConvertToStringTwinProperty(opts.Deduplication);
 
             if (!string.IsNullOrEmpty(opts.Rx2DataRate))
-                twin.Properties.Desired[TwinProperty.RX2DataRate] = ValidationHelper.ConvertToUIntTwinProperty(opts.Rx2DataRate);
+                twin.Properties.Desired[TwinProperty.RX2DataRate] = ValidationHelper.ConvertToUIntDataRateTwinProperty(opts.Rx2DataRate);
 
             if (!string.IsNullOrEmpty(opts.Rx1DrOffset))
                 twin.Properties.Desired[TwinProperty.RX1DROffset] = ValidationHelper.ConvertToUIntTwinProperty(opts.Rx1DrOffset);

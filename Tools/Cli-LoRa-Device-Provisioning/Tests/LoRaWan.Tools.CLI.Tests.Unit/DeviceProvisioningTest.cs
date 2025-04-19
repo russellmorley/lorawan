@@ -441,7 +441,7 @@ namespace LoRaWan.Tools.CLI.Tests.Unit
         [Theory]
         [InlineData("10")]
         [InlineData("SF12BW500")]
-        public async Task ValidateRx2datarate(string rx2datarateValue)
+        public async Task ValidateRx2Datarate(string rx2datarateValue)
         {
             Twin twin = new Twin();
             // Arrange

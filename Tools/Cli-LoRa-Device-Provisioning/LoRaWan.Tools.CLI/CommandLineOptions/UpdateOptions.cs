@@ -95,7 +95,7 @@ namespace LoRaWan.Tools.CLI.Options
         [Option(
             "rx2datarate",
             Required = false,
-            HelpText = "Rx2DataRate (Receive window 2 data rate, currently only supported for OTAA devices): Any of the allowed data rates. EU: 0, 1, 2, 3, 4, 5, 6, or 50. US: 0, 1, 2, 3, 4, 8, 9, 10, 11, 12, 13. (optional).")]
+            HelpText = "Rx2DataRate (Receive window 2 data rate, currently only supported for OTAA devices): enter either number or DRxx, where xx is the DR number, e.g. for DR10 enter number 10 or 'DR10'.")]
         public string Rx2DataRate { get; set; }
 
         [Option(
